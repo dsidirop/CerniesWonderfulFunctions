@@ -98,7 +98,7 @@ end;
 
 --One action to use a Mana potion based on location and item availability
 function UseManaPotion()
-	local potion = {'Major Mana Draught', 'Major Mana Potion', 'Combat Mana Potion', 'Superior Mana Potion', 'Greater Mana Potion', 'Mana Potion', 'Lesser Mana Potion', 'Minor Mana Potion'};
+	local potion = {'Major Mana Draught', 'Major Mana Potion', 'Combat Mana Potion', 'Wildvine Potion', 'Superior Mana Potion', 'Greater Mana Potion', 'Mana Potion', 'Lesser Mana Potion', 'Minor Mana Potion'};
 	local zone = GetRealZoneText();
 	local msg = "Nothing";
 	local i = nil;
