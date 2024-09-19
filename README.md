@@ -61,7 +61,7 @@ For example, the following macro command:
 
 <code>/script UseExoticManaBooster()</code>
 
-- UseHealingPotion()
+- UseHealthPotion()
 One action to use a Healing potion based on location and item availability. This prioritizes using Battleground specific
 healing potions first, then the PvP 'Combat Healing Potion' and then finally if neither are available, uses the best 
 healing potion the player does have in their bags. This is designed to use the PvP specific potions and save the player 
@@ -76,7 +76,7 @@ Order of precedence:
 * Lesser Healing Potion
 For example, the following macro command:
 
-<code>/script UseHealingPotion()</code>
+<code>/script UseHealthPotion()</code>
 
 - UseManaGem()
 Uses available Mana Gem.
