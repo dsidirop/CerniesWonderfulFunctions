@@ -8,6 +8,7 @@ function CerniesWonderfulFunctions_OnLoad()
 	local msg = "Cernie's Wonderful Functions (CWF) loaded. Please see the readme for instructions.";
 	DEFAULT_CHAT_FRAME:AddMessage(msg);
 end;
+
 function CerniesWonderfulFunctions_OnEvent(event, arg1, arg2, arg3)
 	if (event == "PLAYER_REGEN_DISABLED") then
 		CWF_isPlayerInCombat = true;
@@ -131,6 +132,29 @@ function UseManaPotion()
 	end;
 	
 	DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use "..msg.."!");
+end;
+
+--One action to use an exotic Mana booster based on item availability
+function UseExoticManaBooster()
+	local potion = { 'Nordanaar Herbal Tea', 'Dark Rune', 'Demonic Rune' }
+
+	local msg = "Nothing"
+	local potFound, potBag, potSlot, duration
+	for i = 1, table.getn(potion), 1 do
+		potFound, potBag, potSlot = isInBag(potion[i])
+		if (potFound) then
+			_, duration, _ = GetContainerItemCooldown(potBag, potSlot)
+			if (duration == 0) then
+				UseContainerItem(potBag, potSlot, 1)
+				msg = potion[i]
+			else
+				msg = potion[i] .. ", but it is on Cooldown"
+			end
+			break
+		end
+	end
+
+	DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!")
 end;
 
 --One action to use a Health potion based on location and item availability

@@ -49,6 +49,18 @@ For example, the following macro command:
 
 <code>/script UseManaPotion()</code>
 
+- UseExoticManaBooster()
+
+One action to use a Mana tea/runes based on item availability. Order of precedence:
+
+* Nordanaar Herbal Tea (turtle wow item)
+* Dark Rune
+* Demonic Rune
+
+For example, the following macro command:
+
+<code>/script UseExoticManaBooster()</code>
+
 - UseHealingPotion()
 One action to use a Healing potion based on location and item availability. This prioritizes using Battleground specific
 healing potions first, then the PvP 'Combat Healing Potion' and then finally if neither are available, uses the best 
