@@ -36,7 +36,7 @@ For example, the following command (the quotation marks are required):
 /script UseBGBandage('Warsong Gulch Runecloth Bandage', 'Arathi Basin Runecloth Bandage', 'Alterac Heavy Runecloth Bandage', 'Heavy Runecloth Bandage')
 
 - UseBGBiscuit(wg, ab, av)
-One action for using Battleground specific biscuits (or food or water if the player doesn't want to use the busciuts) instead of 
+One action for using Battleground specific biscuits (or food or water if the player doesn't want to use the buscuits) instead of 
 regular food/water. The parameters are based on the item names for each battleground the player wishes to use.
 For example, the following command (the quotation marks are required):
 /script UseBGBiscuit('Warsong Gulch Enriched Ration', 'Arathi Basin Enriched Ration', 'Alterac Manna Biscuit');

@@ -17,22 +17,74 @@ function CerniesWonderfulFunctions_OnEvent(event, arg1, arg2, arg3)
 	end;
 end;
 
+function UseBestBandage()
+	UseBGBandage(
+			"Warsong Gulch Runecloth Bandage",
+			"Arathi Basin Runecloth Bandage",
+			"Alterac Heavy Runecloth Bandage",
+			"Heavy Runecloth Bandage",
+			"Runecloth Bandage",
+			"Heavy Mageweave Bandage",
+			"Mageweave Bandage",
+			"Heavy Silk Bandage",
+			"Silk Bandage",
+			"Heavy Linen Bandage",
+			"Linen Bandage",
+			"Heavy Wool Bandage",
+			"Wool Bandage"
+	);
+end
+
 --One action for using Battleground specific bandages, or use normal bandages if not in a Battleground
-function UseBGBandage(wg, ab, av, normal)
---'Warsong Gulch Runecloth Bandage''Alterac Heavy Runecloth Bandage''Arathi Basin Runecloth Bandage''Heavy Runecloth Bandage'
-	local zone = GetRealZoneText();
+function UseBGBandage(
+		wg,
+		ab,
+		av,
+		normal01,
+		normal02,
+		normal03,
+		normal04,
+		normal05,
+		normal06,
+		normal07,
+		normal08,
+		normal09,
+		normal10,
+		normal11,
+		normal12,
+		normal13,
+		normal14,
+		normal15
+)
+    --'Warsong Gulch Runecloth Bandage''Alterac Heavy Runecloth Bandage''Arathi Basin Runecloth Bandage''Heavy Runecloth Bandage'
 	local msg = nil;
+	local zone = GetRealZoneText();
 	local wgFound, wgBag, wgSlot = isInBag(wg);
 	local abFound, abBag, abSlot = isInBag(ab);
 	local avFound, avBag, avSlot = isInBag(av);
-	local normalFound, normalBag, normalSlot = isInBag(normal);
-	
+
 	if(zone == "Warsong Gulch" and wgFound == true) then UseContainerItem(wgBag, wgSlot); msg = wg;
 	elseif(zone == "Alterac Valley" and avFound == true) then UseContainerItem(avBag, avSlot); msg = av;
 	elseif(zone == "Arathi Basin" and abFound == true) then UseContainerItem(abBag, abSlot); msg = ab;
-	elseif(normalFound) then UseContainerItem(normalBag, normalSlot); msg = normal;
-	else msg = "Nothing"; 
-	end;
+	else
+		local normals = {
+			normal01, normal02, normal03, normal04, normal05,
+			normal06, normal07, normal08, normal09, normal10,
+			normal11, normal12, normal13, normal14, normal15
+		};
+		for i = 1, table.getn(normals), 1 do
+			local normalFound, normalBag, normalSlot = isInBag(normals[i]);
+			if(normalFound == true) then
+				UseContainerItem(normalBag, normalSlot);
+				msg = normals[i];
+				break;
+			end;
+		end;
+		
+		if msg == nil then
+			msg = "Nothing";
+		end
+	end
 	
 	DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use "..msg.."!");
 end;

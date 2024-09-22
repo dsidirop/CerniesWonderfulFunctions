@@ -13,7 +13,7 @@ Unzip the CerniesWonderfulFunctions folder into WoW directory Interface/Addons f
 # Introduction
 
 
-CerniesWonderfulFunctions is a collection of script functions for Vanila World of Warcraft (1.12.1) designed for easy use of PvP Battleground items such as bandages, healing/mana potions, and food/drink. In addition, common useful macro functions are available as well. 
+CerniesWonderfulFunctions is a collection of script functions for Vanilla World of Warcraft (1.12.1) designed for easy use of PvP Battleground items such as bandages, healing/mana potions, and food/drink. In addition, common useful macro functions are available as well. 
 These functions are flexible in what types of items the player wishes to use, meaning players of all levels can take full advantage of them. Using the methods is as simple as creating a new macro and writing a single line for /script <functionName>(<parameters>). Directions and examples are found below.
 
 # List of Functions
@@ -26,11 +26,19 @@ For example, the following command (the quotation marks are required):
 <code>/script UseBGBandage('Warsong Gulch Runecloth Bandage', 'Arathi Basin Runecloth Bandage', 'Alterac Heavy Runecloth Bandage', 'Heavy Runecloth Bandage')</code>
 
 - UseBGBiscuit(wg, ab, av)
-One action for using Battleground specific biscuits (or food or water if the player doesn't want to use the busciuts) instead of 
+One action for using Battleground specific biscuits (or food or water if the player doesn't want to use the biscuits) instead of 
 regular food/water. The parameters are based on the item names for each battleground the player wishes to use.
 For example, the following command (the quotation marks are required):
 
 <code>/script UseBGBiscuit('Warsong Gulch Enriched Ration', 'Arathi Basin Enriched Ration', 'Alterac Manna Biscuit');</code>
+
+- UseBestBandage()
+
+One action to use the best bandage the player has in their bags. This is essentially a convenience alias to UseBGBandage().
+
+For example, the following macro command:
+
+<code>/script UseBestBandage()</code>
 
 - UseManaPotion()
 One action to use a Mana potion based on location and item availability. This prioritizes using Battleground specific
