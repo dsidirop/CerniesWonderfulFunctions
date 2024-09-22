@@ -84,6 +84,13 @@ For example, the following macro command:
 
 <code>/script UseManaGem()</code>
 
+- UseArmorPotion()
+Uses any available Armor (Stoneshield etc) Potion.
+
+For example, the following macro command:
+
+<code>/script UseArmorPotion()()</code>
+
 - UseHealthstone()
 Uses available Healthstone.
 For example, the following macro command;

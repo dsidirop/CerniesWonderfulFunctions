@@ -157,6 +157,29 @@ function UseExoticManaBooster()
 	DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!")
 end;
 
+--One action to use an armor potion based on item availability
+function UseArmorPotion()
+	local potion = { 'Greater Stoneshield Potion', 'Lesser Stoneshield Potion' }
+
+	local msg = "Nothing"
+	local potFound, potBag, potSlot, duration
+	for i = 1, table.getn(potion), 1 do
+		potFound, potBag, potSlot = isInBag(potion[i])
+		if (potFound) then
+			_, duration, _ = GetContainerItemCooldown(potBag, potSlot)
+			if (duration == 0) then
+				UseContainerItem(potBag, potSlot, 1)
+				msg = potion[i]
+			else
+				msg = potion[i] .. ", but it is on Cooldown"
+			end
+			break
+		end
+	end
+
+	DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!")
+end;
+
 --One action to use a Health potion based on location and item availability
 function UseHealthPotion()
 	local potion = {'Major Healing Draught', 'Major Healing Potion', 'Combat Healing Potion', 'Superior Healing Potion', 'Greater Healing Potion', 'Healing Potion', 'Lesser Healing Potion', 'Minor Healing Potion'};
