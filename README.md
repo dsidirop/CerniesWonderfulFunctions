@@ -139,6 +139,16 @@ For example, the following macro command:
 
 <code>/script ToggleEquipItemSlot("SECONDARYHANDSLOT", "Talon of Furious Concentration", "Skull of Impending Doom");</code>
 
+Note that the item names are treated as case-sensitive **regexes** so you can use partial names if desired as long as your regex matches the desired
+item from its first character. This means that if the name of your desired item contains special regex characters (like . * + ? etc) you will need to escape them!
+
+Examples:
+
+    - "Time[-]Shifting Wheel" would match "Time-Shifting Wheel" but if you use "Time-Shifting Wheel" without escaping the '-' then it would not match!
+    - "Talon" would work in place of "Talon of Furious Concentration" (but not "talon" or "alon")
+    - "Skull.*Doom" would work in place of "Skull of Impending Doom" (assuming of course that no other item matches this regex)
+    - ".*Doom" would work in place of "Skull of Impending Doom" (assuming of course that no other item matches this regex)
+
 - Shapeshift(form, isPowerShift, isGCD)
 Druid function to use a specific shapeshift based on the name (ie "Cat Form"). Set isPowerShift to true if you want to shift out and back in, or
 false if you do not. Set isGCD to true if you want to wait to shift until you are off the global cooldown, or false if you do not.
@@ -231,6 +241,16 @@ For example, the following macro command:
 
 <code>/script UseItemInBag("Iron Grenade");</code>
 
+Note that the item names are treated as case-sensitive **regexes** so you can use partial names if desired as long as your regex matches the desired
+item from its first character. This means that if the name of your desired item contains special regex characters (like . * + ? etc) you will need to escape them!
+
+Examples:
+
+    - "Time[-]Shifting Wheel" would match "Time-Shifting Wheel" but if you use "Time-Shifting Wheel" without escaping the '-' then it would not match!
+    - "Talon" would work in place of "Talon of Furious Concentration" (but not "talon" or "alon")
+    - "Skull.*Doom" would work in place of "Skull of Impending Doom" (assuming of course that no other item matches this regex)
+    - ".*Doom" would work in place of "Skull of Impending Doom" (assuming of course that no other item matches this regex)
+
 - getSpellId(spell)
 Function to find the spell id given a spell name, returns the spell id necessary for other API calls. Useful to reduce macro length when getting information
 about a spell from the player's spell book.
@@ -269,6 +289,16 @@ Useful in greatly reducing macro length and helps in logic to determine if an it
 For example, the following macro command:
 
 <code>/script local found, bag, slot = isInBag("Major Healing Potion") if(found) then UseContainerItem(bag, slot, 1) else DEFAULT_CHAT_FRAME:AddMessage("Major Healing Potion not found!") end;</code>
+
+Note that the item names are treated as case-sensitive **regexes** so you can use partial names if desired as long as your regex matches the desired
+item from its first character. This means that if the name of your desired item contains special regex characters (like . * + ? etc) you will need to escape them!
+
+Examples:
+
+    - "Time[-]Shifting Wheel" would match "Time-Shifting Wheel" but if you use "Time-Shifting Wheel" without escaping the '-' then it would not match!
+    - "Talon" would work in place of "Talon of Furious Concentration" (but not "talon" or "alon")
+    - "Skull.*Doom" would work in place of "Skull of Impending Doom" (assuming of course that no other item matches this regex)
+    - ".*Doom" would work in place of "Skull of Impending Doom" (assuming of course that no other item matches this regex)
 
 - getItemName(itemLink)
 Function to take an item link and extract the item name. Helper to isInBag(itemName) for comparing names of container items.
