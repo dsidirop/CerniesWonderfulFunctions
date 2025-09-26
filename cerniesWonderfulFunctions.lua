@@ -687,44 +687,37 @@ end
 
 --Helper function to determine if an item is in the player's bags, returns boolean of if found and bag and slot ids
 function isInBag(itemName)
-    local itemBag, itemSlot, index1, index2, name2;
-
     local found = false;
-    local bracketEnd = "]";
-    local bracketStart = "|h";
-    for bag = 0, 4, 1
-    do
-        for slot = 1, GetContainerNumSlots(bag), 1
-        do
-            local name = GetContainerItemLink(bag, slot)
-            if name then
-                index1 = string.find(name, bracketStart, 1, true);
-                index2 = string.find(name, bracketEnd, 1, true);
-                name2 = string.sub(name, index1 + 3, index2 - 1);
-                if string.find(name2, itemName) == 1 then
-                    found = true;
-                    itemBag = bag;
-                    itemSlot = slot;
-                    return found, itemBag, itemSlot;
-                end
+    local itemBag, itemSlot;
+    for bag = 0, 4, 1 do
+        for slot = 1, GetContainerNumSlots(bag), 1 do
+            local name = getItemName(GetContainerItemLink(bag, slot))
+            if name and string.find(name, itemName) == 1 then
+                found = true;
+                itemBag = bag;
+                itemSlot = slot;
+                return found, itemBag, itemSlot;
             end
         end
     end
+
     return found, itemBag, itemSlot;
 end
 
+local bracketEnd = "]";
+local bracketStart = "|h";
+
 --Helper function to get an item name given an item link
 function getItemName(itemLink)
-    local name;
-    local bracketEnd = "]";
-    local bracketStart = "|h";
-
-    if (itemLink ~= nil) then
-        local index1 = string.find(itemLink, bracketStart);
-        local index2 = string.find(itemLink, bracketEnd);
-        name = string.sub(itemLink, index1 + 3, index2 - 1);
+    if itemLink == nil then
+        return nil
     end
-    return name;
+
+    return string.sub(
+            itemLink,
+            string.find(itemLink, bracketStart, 1, true) + 3,
+            string.find(itemLink, bracketEnd, 1, true) - 1
+    );
 end
 
 --Helper function to determine if a specific buff texture is active on the player
