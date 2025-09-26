@@ -697,9 +697,9 @@ function isInBag(itemName)
         for slot = 1, GetContainerNumSlots(bag), 1
         do
             local name = GetContainerItemLink(bag, slot)
-            if name and string.find(name, itemName) then
-                index1 = string.find(name, bracketStart);
-                index2 = string.find(name, bracketEnd);
+            if name then
+                index1 = string.find(name, bracketStart, 1, true);
+                index2 = string.find(name, bracketEnd, 1, true);
                 name2 = string.sub(name, index1 + 3, index2 - 1);
                 if string.find(name2, itemName) == 1 then
                     found = true;
