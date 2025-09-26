@@ -142,6 +142,12 @@ For example, the following macro command:
 Note that the item names are treated as case-sensitive **regexes** so you can use partial names if desired as long as your regex matches the desired
 item from its first character. This means that if the name of your desired item contains special regex characters (like . * + ? etc) you will need to escape them!
 
+In order to avoid mismatches with similar named items, it's recommended to enforce exact string-matching like so:
+
+<code>/script ToggleEquipItemSlot("SECONDARYHANDSLOT", "^Talon of Furious Concentration\$", "^Skull of Impending Doom\$");</code>
+
+This will ensure that only the exact item "Talon of Furious Concentration" is matched (and not something like "Talon of Furious Concentration of the Eagle")
+
 Examples:
 
     - "Time[-]Shifting Wheel" would match "Time-Shifting Wheel" but if you use "Time-Shifting Wheel" without escaping the '-' then it would not match!
@@ -291,7 +297,13 @@ For example, the following macro command:
 <code>/script local found, bag, slot = isInBag("Major Healing Potion") if(found) then UseContainerItem(bag, slot, 1) else DEFAULT_CHAT_FRAME:AddMessage("Major Healing Potion not found!") end;</code>
 
 Note that the item names are treated as case-sensitive **regexes** so you can use partial names if desired as long as your regex matches the desired
-item from its first character. This means that if the name of your desired item contains special regex characters (like . * + ? etc) you will need to escape them!
+item from its very first character. This means that if the name of your desired item contains special regex characters (like . * + ? etc) you will need to escape them!
+
+In order to avoid mismatches with similar named items, it's recommended to enforce exact string-matching like so:
+
+<code>/script local found, bag, slot = isInBag("^Major Healing Potion\$") if(found) then UseContainerItem(bag, slot, 1) else DEFAULT_CHAT_FRAME:AddMessage("Major Healing Potion not found!") end;</code>
+
+This will ensure that only the exact item "Major Healing Potion" is matched and not something like "Major Healing Potion of Foobar".
 
 Examples:
 
