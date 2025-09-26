@@ -9,7 +9,7 @@ function CerniesWonderfulFunctions_OnLoad()
 	DEFAULT_CHAT_FRAME:AddMessage(msg);
 end;
 
-function CerniesWonderfulFunctions_OnEvent(event, arg1, arg2, arg3)
+function CerniesWonderfulFunctions_OnEvent(event)
 	if (event == "PLAYER_REGEN_DISABLED") then
 		CWF_isPlayerInCombat = true;
 	elseif (event == "PLAYER_REGEN_ENABLED") then
@@ -57,7 +57,7 @@ function UseBGBandage(
 		normal15
 )
     --'Warsong Gulch Runecloth Bandage''Alterac Heavy Runecloth Bandage''Arathi Basin Runecloth Bandage''Heavy Runecloth Bandage'
-	local msg = nil;
+	local msg;
 	local zone = GetRealZoneText();
 	local wgFound, wgBag, wgSlot = isInBag(wg);
 	local abFound, abBag, abSlot = isInBag(ab);
@@ -93,7 +93,7 @@ end;
 function UseBGBiscuit(wg, ab, av)
 --'Warsong Gulch Enriched Ration''Alterac Manna Biscuit''Arathi Basin Enriched Ration'
 	local zone = GetRealZoneText();
-	local msg = nil;
+	local msg;
 	local wgFound, wgBag, wgSlot = isInBag(wg);
 	local abFound, abBag, abSlot = isInBag(ab);
 	local avFound, avBag, avSlot = isInBag(av);
@@ -153,9 +153,7 @@ function UseManaPotion()
 	local potion = {'Major Mana Draught', 'Major Mana Potion', 'Combat Mana Potion', 'Wildvine Potion', 'Superior Mana Potion', 'Greater Mana Potion', 'Mana Potion', 'Lesser Mana Potion', 'Minor Mana Potion'};
 	local zone = GetRealZoneText();
 	local msg = "Nothing";
-	local i = nil;
-	local potFound, potBag, potSlot = nil;
-	local _, duration, _ = nil;
+	local potFound, potBag, potSlot, duration;
 	
 	--based on battleground zone use 'Major Mana Draught'
 	potFound, potBag, potSlot = isInBag(potion[1]);
@@ -237,9 +235,7 @@ function UseHealthPotion()
 	local potion = {'Major Healing Draught', 'Major Healing Potion', 'Combat Healing Potion', 'Superior Healing Potion', 'Greater Healing Potion', 'Healing Potion', 'Lesser Healing Potion', 'Minor Healing Potion'};
 	local zone = GetRealZoneText();
 	local msg = "Nothing";
-	local i = nil;
-	local potFound, potBag, potSlot = nil;
-	local _, duration, _ = nil;
+	local potFound, potBag, potSlot, duration;
 	
 	--based on battleground zone use 'Major Healing Draught'
 	potFound, potBag, potSlot = isInBag(potion[1]);
@@ -274,7 +270,7 @@ end;
 function UseManaGem()
 	local msg = "Nothing";
 	local gem = {"Mana Ruby", "Mana Citrine", "Mana Jade", "Mana Agate"};
-	local hasGem, gemBag, gemSlot = nil;
+	local hasGem, gemBag, gemSlot;
 	for i=1, 4 do
 		hasGem, gemBag, gemSlot = isInBag(gem[i]);
 		if(hasGem == true) then 
@@ -290,7 +286,7 @@ end;
 function UseHealthstone()
 	local msg = "Nothing";
 	local healthstone = {"Major Healthstone", "Greater Healthstone", "Healthstone", "Lesser Healthstone", "Minor Healthstone"};
-	local hasStone, stoneBag, stoneSlot = nil;
+	local hasStone, stoneBag, stoneSlot;
 	for i=1, 5 do
 		hasStone, stoneBag, stoneSlot = isInBag(healthstone[i]);
 		if(hasStone == true) then 
@@ -322,8 +318,7 @@ function Fish(pole)
 	local pole_hasPole, pole_bag, pole_slot = isInBag(pole);
 	local mod = false;
 	local lures = {"Aquadynamic Fish Attractor", "Flesh Eating Worm", "Bright Baubles", "Nightcrawlers", "Shiny Bauble"};
-	local i = nil;
-	local lureFound, lureBag, lureSlot = nil;
+	local lureFound, lureBag, lureSlot;
 	
 	if(IsAltKeyDown() or IsShiftKeyDown() or IsControlKeyDown()) then
 		mod = true;
@@ -362,9 +357,7 @@ end;
 function Shapeshift(form, isPowerShift, isGCD)
 	local targetFormId = 0;
 	local currentForm = 0;
-	local i = nil;
-	local _, formName, active = nil;
-	local _, shiftCooldown, _ = nil;
+	local formName, active, shiftCooldown;
 	local isShiftCd = isSpellOnCd(form);
 	
 	_, formName, active = GetShapeshiftFormInfo(1);	
@@ -397,8 +390,8 @@ end;
 
 --Druid cancel shapeshift
 function CancelShapeshift()
-	local currentForm = 0;
-	local _,formName,active = nil;
+    local currentForm = 0;
+    local formName, active;
 	for i = 1, GetNumShapeshiftForms(), 1
 		do
 			_,formName,active = GetShapeshiftFormInfo(i);
@@ -427,7 +420,7 @@ end;
 --Druid macro to return current form id
 function getShapeshiftForm()
 	local currentForm = 0;
-	local _,formName,active = nil;
+    local formName, active;
 	for i = 1, GetNumShapeshiftForms(), 1
 		do
 			_,formName,active = GetShapeshiftFormInfo(i);
@@ -445,14 +438,16 @@ end;
 
 --Reads unit's buffs and returns isBuffActive, buffIndex, numBuffs
 function isBuffNameActive(buff, unit)
-	createTooltipFrame();
-	local isBuffActive = false;
-	local buffIndex = -1;
-	local i = 1;
-	local numBuffs = nil;
-	local g=UnitBuff;
-	local textleft1 = nil;
 	unit = unit or "player";
+
+	createTooltipFrame();
+    
+    local i = 1;
+    local g = UnitBuff;
+	local buffIndex = -1;
+	local isBuffActive = false;
+    
+    local numBuffs, textleft1;
 	while not(g(unit, i) == -1 or g(unit, i) == nil)
 		do
 		cernieUsefulFunctionsTooltip:SetOwner( WorldFrame, "ANCHOR_NONE" );
@@ -473,14 +468,17 @@ end;
 
 --Reads unit's debuffs and returns isDebuffActive, debuffIndex, numDebuffs
 function isDebuffNameActive(debuff, unit)
-	createTooltipFrame();
-	local isDebuffActive = false;
-	local debuffIndex = -1;
-	local i = 1;
-	local numDebuffs = nil;
-	local g=UnitDebuff;
-	local textleft1 = nil;
 	unit = unit or "player";
+
+	createTooltipFrame();
+
+    local i = 1;
+    local g = UnitDebuff;
+    local debuffIndex = -1;
+    local isDebuffActive = false;
+
+    local textleft1;
+    local numDebuffs;
 	while not(g(unit, i) == -1 or g(unit, i) == nil)
 		do
 		cernieUsefulFunctionsTooltip:SetOwner( WorldFrame, "ANCHOR_NONE" );
@@ -571,10 +569,9 @@ end;
 
 --Uses a container item based on item name, self ensures the item is used on the player
 function UseItemInBag(itemName, self)
-	local found, bag, slot = nil;
 	self = self or 0;
-	
-	found, bag, slot = isInBag(itemName);
+
+	local found, bag, slot = isInBag(itemName);
 	if(found) then
 		if(self == 0) then
 			UseContainerItem(bag, slot);
@@ -588,7 +585,7 @@ end;
 function getSpellId(spell)
 	local i = 1
 	while true do
-	   local spellName, spellRank = GetSpellName(i, BOOKTYPE_SPELL)
+	   local spellName, _ = GetSpellName(i, BOOKTYPE_SPELL)
 	   if not spellName then
 		  do break end
 	   end
@@ -598,33 +595,31 @@ function getSpellId(spell)
 	end
 end;
 
---Function to determine if spell or ability is on Cooldown, returns true or false. (For experimental mode that checks the cd based on your latency: uncomment the commented lines, and comment out the last return line)
+-- Function to determine if spell or ability is on Cooldown, returns true or false. (For experimental mode that checks the cd based on your latency: uncomment the commented lines, and comment out the last return line)
 function isSpellOnCd(spell)
-	local gameTime = GetTime();
-	local _,_, latency = GetNetStats();
-	local start,duration,_ = GetSpellCooldown(getSpellId(spell), BOOKTYPE_SPELL);
-	local cdT = start + duration - gameTime;
-	latency = latency / 1000;
-	return (duration > latency);
-	--return (duration ~= 0);
+    local _, _, latency = GetNetStats();
+    local _, duration, _ = GetSpellCooldown(getSpellId(spell), BOOKTYPE_SPELL);
+
+    latency = latency / 1000;
+
+    return (duration > latency);
 end;
 
 --Function to determine if a container item is on Cooldown, returns true or false
 function isContainerItemOnCd(itemName)
-	local found, bag, slot = isInBag(itemName);
-	local isOnCd = nil;
-	local start, duration, enabled = nil;
-	
-	if(found) then
-		start, duration, enabled = GetContainerItemCooldown(bag, slot);
-		if(enabled ~= 1 or (enabled == 1 and duration == 0)) then
-			isOnCd = false;
-		elseif(enabled == 1 and duration ~= 0) then
-			isOnCd = true;
-		end;
-	end;
-	return isOnCd;
-end;
+    local found, bag, slot = isInBag(itemName);
+
+    local isOnCd, start, duration, enabled;
+    if (found) then
+        start, duration, enabled = GetContainerItemCooldown(bag, slot);
+        if (enabled ~= 1 or (enabled == 1 and duration == 0)) then
+            isOnCd = false;
+        elseif (enabled == 1 and duration ~= 0) then
+            isOnCd = true;
+        end
+    end
+    return isOnCd;
+end
 
 --Helper function to find the action slot id based on texture
 function findActionSlot(spellTexture)	
@@ -654,21 +649,19 @@ end;
 
 --Helper function to determine if an item is in the player's bags, returns boolean of if found and bag and slot ids
 function isInBag(itemName)
-	local found = false;
-	local itemBag, itemSlot = nil;
-	local name2 = nil;
-	local index1 = nil;
-	local index2 = nil;
-	local bracketStart = "|h";
+	local itemBag, itemSlot, index1, index2, name2;
+	
+    local found = false;
 	local bracketEnd = "]";
+	local bracketStart = "|h";
 	for bag = 0, 4, 1
 		do 
 			for slot = 1, GetContainerNumSlots(bag), 1
 				do local name = GetContainerItemLink(bag,slot)
 				if name and string.find(name, itemName) then
-					local index1 = string.find(name, bracketStart);
-					local index2 = string.find(name, bracketEnd);
-					local name2 = string.sub(name, index1 + 3, index2 - 1);
+					index1 = string.find(name, bracketStart);
+					index2 = string.find(name, bracketEnd);
+					name2 = string.sub(name, index1 + 3, index2 - 1);
 					if string.find(name2, itemName) == 1 then 
 						found = true;
 						itemBag = bag;
@@ -683,19 +676,17 @@ end;
 
 --Helper function to get an item name given an item link
 function getItemName(itemLink)
-	local name = nil;
-	local index1 = nil;
-	local index2 = nil;
-	local bracketStart = "|h";
-	local bracketEnd = "]";
-	
-	if(itemLink ~= nil) then
-		local index1 = string.find(itemLink, bracketStart);
-		local index2 = string.find(itemLink, bracketEnd);
-		name = string.sub(itemLink, index1 + 3, index2 - 1);
-	end;
-	return name;
-end;
+    local name;
+    local bracketEnd = "]";
+    local bracketStart = "|h";
+
+    if (itemLink ~= nil) then
+        local index1 = string.find(itemLink, bracketStart);
+        local index2 = string.find(itemLink, bracketEnd);
+        name = string.sub(itemLink, index1 + 3, index2 - 1);
+    end
+    return name;
+end
 
 --Helper function to determine if a specific buff texture is active on the player
 function isBuffTextureActive(texture)
