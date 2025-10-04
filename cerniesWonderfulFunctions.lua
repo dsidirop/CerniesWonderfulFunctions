@@ -602,18 +602,17 @@ function MountAQ(normal, aq)
     end
 end
 
---Uses a container item based on item name, self ensures the item is used on the player
-function UseItemInBag(itemName, self)
-    self = self or 0;
+--Uses a container item based on item-name-regex, self ensures the item is used on the player
+function UseItemInBag(itemNameRegex, useOnSelf)
+    useOnSelf = useOnSelf or 0
 
-    local found, bag, slot = isInBag(itemName);
-    if (found) then
-        if (self == 0) then
-            UseContainerItem(bag, slot);
-        else
-            UseContainerItem(bag, slot, 1);
-        end
+    local found, bag, slot = isInBag(itemNameRegex)
+    if not found then
+        return false
     end
+
+    UseContainerItem(bag, slot, useOnSelf)
+    return true
 end
 
 --returns id of a spell from player's spellbook
@@ -686,13 +685,13 @@ function ToggleAutoAttack(switch)
 end
 
 --Helper function to determine if an item is in the player's bags, returns boolean of if found and bag and slot ids
-function isInBag(itemName)
+function isInBag(itemNameRegex)
     local found = false;
     local itemBag, itemSlot;
     for bag = 0, 4, 1 do
         for slot = 1, GetContainerNumSlots(bag), 1 do
             local name = getItemName(GetContainerItemLink(bag, slot))
-            if name and string.find(name, itemName) == 1 then
+            if name and string.find(name, itemNameRegex) == 1 then
                 found = true;
                 itemBag = bag;
                 itemSlot = slot;

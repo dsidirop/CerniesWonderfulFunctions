@@ -246,6 +246,25 @@ Function to use an item in the player's container bags based on the name of the 
 For example, the following macro command:
 
 <code>/script UseItemInBag("Iron Grenade");</code>
+<code>/script UseItemInBag("Ez[-]Thro Dynamite");</code>
+
+You may also chain multiple items together like so - the first item found will be used:
+
+<code>/script UseItemInBag(" Grenade\$") or UseItemInBag(" Dynamite$") or UseItemInBag(" Bomb\$")</code>
+
+Better yet, if you have supermacro you can write a dedicated function that is more readable:
+
+<code>/script MyBombGrabber();</code>
+
+```lua
+-- and now in the supermacro script section define your function
+function MyBombGrabber()
+   _ = false -- comment / uncomment lines as intended
+          or  UseItemInBag(".* Dynamite$")  -- least potent
+          or  UseItemInBag(".* Grenade$")
+          or  UseItemInBag(".* Bomb$") -- most potent
+end
+```
 
 Note that the item names are treated as case-sensitive **regexes** so you can use partial names if desired as long as your regex matches the desired
 item from its first character. This means that if the name of your desired item contains special regex characters (like . * + ? etc) you will need to escape them!
