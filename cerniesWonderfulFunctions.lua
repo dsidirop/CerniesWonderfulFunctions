@@ -709,13 +709,98 @@ function findMostRecentRegexedActiveBuff(unit, buffRegex1, buffRegex2, buffRegex
     return matchesArray[1].Index, matchesArray[1].BuffName;
 end
 
+function CastSpellIfSpecifiedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+    buff1 = buff1 or spell; -- if buff1 is not specified, assume the buff to check for is the same as the spell to cast
+    
+    local mostRecentBuffIndex = findMostRecentActiveBuff(scanUnit, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+    if mostRecentBuffIndex ~= nil then
+        return false -- at least one buff found, do not cast
+    end
+
+    if useStopCastingFirst then
+        SpellStopCasting()
+    end
+
+    onSelf = onSelf == nil
+            and true
+            or onSelf;
+
+    CastSpellByName(spell, onSelf)
+    
+    return true
+end
+
+function CastSpellIfSpecifiedRegexedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
+    buffRegex1 = buffRegex1 or spell; -- if buff1 is not specified, assume the buff to check for is the same as the spell to cast
+    
+    local mostRecentBuffIndex = findMostRecentRegexedActiveBuff(scanUnit, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
+    if mostRecentBuffIndex ~= nil then
+        return false -- at least one buff found, do not cast
+    end
+
+    if useStopCastingFirst then
+        SpellStopCasting()
+    end
+
+    onSelf = onSelf == nil
+            and true
+            or onSelf;
+
+    CastSpellByName(spell, onSelf)
+    
+    return true
+end
+
+function CastSpellIfAnySpecifiedBuffIsPresent(scanUnit, spell, onSelf, useStopCastingFirst, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+    buff1 = buff1 or spell; -- if buff1 is not specified, assume the buff to check for is the same as the spell to cast
+
+    local mostRecentBuffIndex = findMostRecentActiveBuff(scanUnit, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+    if mostRecentBuffIndex == nil then
+        return false; -- none of the specified buffs was found
+    end
+
+    if useStopCastingFirst then
+        SpellStopCasting();
+    end
+
+    onSelf = onSelf == nil
+            and true
+            or onSelf;
+
+    CastSpellByName(spell, onSelf);
+
+    return true;
+end
+
+function CastSpellIfAnySpecifiedRegexedBuffIsPresent(scanUnit, spell, onSelf, useStopCastingFirst, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
+    buffRegex1 = buffRegex1 or spell; -- if buff1 is not specified, assume the buff to check for is the same as the spell to cast
+
+    local mostRecentBuffIndex = findMostRecentRegexedActiveBuff(scanUnit, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
+    if mostRecentBuffIndex == nil then
+        return false; -- none of the specified buffs was found
+    end
+
+    if useStopCastingFirst then
+        SpellStopCasting();
+    end
+
+    onSelf = onSelf == nil
+            and true
+            or onSelf;
+
+    CastSpellByName(spell, onSelf);
+
+    return true
+end
+
+
 
 local _havePrintedDeprecationWarningFor_isBuffNameActive = false;
 
 --[DEPRECATED: Use findRegexedActiveBuffs() instead] Reads unit's buffs and returns isBuffActive, buffIndex, numBuffs
 function isBuffNameActive(buff, unit)
     if not _havePrintedDeprecationWarningFor_isBuffNameActive then
-        DEFAULT_CHAT_FRAME:AddMessage("CWF: DEPRECATION WARNING: isBuffNameActive() is deprecated, please use findRegexedActiveBuffs() instead!", 1, 0.5, 0);
+        DEFAULT_CHAT_FRAME:AddMessage("CWF: [DEPRECATION WARNING] isBuffNameActive() is deprecated, please use findRegexedActiveBuffs() instead!", 1, 0.5, 0);
         _havePrintedDeprecationWarningFor_isBuffNameActive = true;
     end
     

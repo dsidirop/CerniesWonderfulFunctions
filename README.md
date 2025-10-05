@@ -361,6 +361,38 @@ For example, the following macro command:
 
 <code>/script ToggleAutoAttack("on")</code>
 
+- CastSpellIfSpecifiedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, buff1, buff2, buff3, ...)
+
+Casts the specified spell if the specified regexed-buffs are all missing from the 'scanUnit'. If the parameter onself is set to false then the
+spell will be cast on the player's target instead of on the player. If the parameter useStopCastingFirst is set to true then
+the function will first stop any current spellcasting before attempting to cast the specified spell.
+
+Returns true if the spell was cast (because all specified buffs where missing), false otherwise.
+
+<code/>/script CastSpellIfSpecifiedBuffsAreAllMissing("player", "Righteous Fury")</code>
+<code/>/script CastSpellIfSpecifiedBuffsAreAllMissing("player", "Fire Resistance Aura")</code>
+<code/>/script CastSpellIfSpecifiedBuffsAreAllMissing("player", "Fire Resistance Aura", true, true, "Fire Resistance Aura", "Frost Resistance Aura", "Shadow Resistance Aura")</code>
+
+You can even chain such calls like so:
+
+```lua
+-- aura dancing for paladins
+_ =      CastSpellIfSpecifiedBuffsAreAllMissing("player",   "Devotion Aura") -- will swap back and forth between these two
+     or  CastSpellIfSpecifiedBuffsAreAllMissing("player",   "Fire Resistance Aura")
+```
+
+- CastSpellIfSpecifiedRegexedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, regexBuff1, regexBuff2, regexBuff3, ...)
+
+Like CastSpellIfSpecifiedBuffsAreAllMissing() but uses regex-matching instead of exact string matching.
+
+- CastSpellIfAnySpecifiedBuffIsPresent(scanUnit, spell, onSelf, useStopCastingFirst, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+
+This is the inverse of CastSpellIfSpecifiedBuffsAreAllMissing(). This function casts the specified spell if any of the specified buffs are present on the 'scanUnit'.
+
+- CastSpellIfAnySpecifiedRegexedBuffIsPresent(scanUnit, spell, onSelf, useStopCastingFirst, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
+
+Like CastSpellIfAnySpecifiedBuffIsPresent() but uses regex-matching instead of exact string matching.
+
 - isInBag(itemName)
 Function to find a container item based on the item name. Returns boolean (true/false) based on if the item is found, the item's bag id, and the item's slot id.
 Useful in greatly reducing macro length and helps in logic to determine if an item gets used or equipped.
