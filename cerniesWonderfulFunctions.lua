@@ -83,7 +83,7 @@ function UseBGBandage(
             if (normalFound == true) then
                 UseContainerItem(normalBag, normalSlot);
                 msg = normals[i];
-                break ;
+                break;
             end
         end
 
@@ -193,7 +193,7 @@ function UseManaPotion()
                 else
                     msg = potion[i] .. ", but it is on Cooldown";
                 end
-                break ;
+                break;
             end
         end
     end
@@ -277,7 +277,7 @@ function UseHealthPotion()
                 else
                     msg = potion[i] .. ", but it is on Cooldown";
                 end
-                break ;
+                break;
             end
         end
     end
@@ -295,7 +295,7 @@ function UseManaGem()
         if (hasGem == true) then
             UseContainerItem(gemBag, gemSlot, 1);
             msg = gem[i];
-            break ;
+            break;
         end
     end
     DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!");
@@ -311,7 +311,7 @@ function UseHealthstone()
         if (hasStone == true) then
             UseContainerItem(stoneBag, stoneSlot, 1);
             msg = healthstone[i];
-            break ;
+            break;
         end
     end
     DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!");
@@ -351,7 +351,7 @@ function Fish(pole)
             if (lureFound) then
                 UseContainerItem(lureBag, lureSlot);
                 PickupInventoryItem(16);
-                break ;
+                break;
             end
         end
     elseif (mainHandName ~= nil and mainHandName == pole) then
@@ -461,12 +461,18 @@ function createTooltipFrame()
     end
 end
 
-local function findActiveBuffsImpl(unit, exactMatchingNotRegex, buff1, buff2, buff3, buff4, buff5, buff6, ...)
+local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+    local extraRegexes = arg;
+    
     unit = unit or "player";
 
-    local extraRegexes = arg ~= nil
-            and unpack(arg)
-            or nil;
+    stopAtFirstMatch = stopAtFirstMatch == nil
+            and true
+            or false;
+
+    exactMatchingNotRegex = exactMatchingNotRegex == nil
+            and true
+            or false;
 
     createTooltipFrame();
 
@@ -498,34 +504,39 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, buff1, buff2, bu
             if currentBuffName ~= nil then
                 -- print("** i=" .. i .. " -> currentBuffName=" .. tostring(currentBuffName))
 
-                currentBuffIsMatching = (buff1 ~= nil and (exactMatchingNotRegex and currentBuffName == buff1) or (not exactMatchingNotRegex and string.find(currentBuffName, buff1)))
-                        or (buff2 ~= nil and (exactMatchingNotRegex and currentBuffName == buff2) or (not exactMatchingNotRegex and string.find(currentBuffName, buff2)))
-                        or (buff3 ~= nil and (exactMatchingNotRegex and currentBuffName == buff3) or (not exactMatchingNotRegex and string.find(currentBuffName, buff3)))
-                        or (buff4 ~= nil and (exactMatchingNotRegex and currentBuffName == buff4) or (not exactMatchingNotRegex and string.find(currentBuffName, buff4)))
-                        or (buff5 ~= nil and (exactMatchingNotRegex and currentBuffName == buff5) or (not exactMatchingNotRegex and string.find(currentBuffName, buff5)))
-                        or (buff6 ~= nil and (exactMatchingNotRegex and currentBuffName == buff6) or (not exactMatchingNotRegex and string.find(currentBuffName, buff6)));
-                if not currentBuffIsMatching and extraRegexes ~= nil then
-                    for __, extraRegex in pairs(extraRegexes) do
-                        if extraRegex ~= nil and string.find(currentBuffName, extraRegex) then
-                            currentBuffIsMatching = true;
-                            break;
-                        end
-                    end
-                end
+                currentBuffIsMatching = --@formatter:off
+                           (  buff1 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff1 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff1))) )
+                        or (  buff2 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff2 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff2))) )
+                        or (  buff3 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff3 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff3))) )
+                        or (  buff4 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff4 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff4))) )
+                        or (  buff5 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff5 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff5))) )
+                        or (  buff6 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff6 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff6))) )
+                        or (  buff7 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff7 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff7))) )
+                        or (  buff8 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff8 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff8))) )
+                        or (  buff9 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff9 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff9))) )
+                        or ( buff10 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff10) or (not exactMatchingNotRegex and string.find(currentBuffName, buff10))) )
+                        or ( buff11 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff11) or (not exactMatchingNotRegex and string.find(currentBuffName, buff11))) )
+                        or ( buff12 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff12) or (not exactMatchingNotRegex and string.find(currentBuffName, buff12))) )
+                        or ( buff13 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff13) or (not exactMatchingNotRegex and string.find(currentBuffName, buff13))) )
+                        or ( buff14 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff14) or (not exactMatchingNotRegex and string.find(currentBuffName, buff14))) )
+                        or ( buff15 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff15) or (not exactMatchingNotRegex and string.find(currentBuffName, buff15))) ); --@formatter:on
 
                 if currentBuffIsMatching then
                     -- print("** Matching buff found: currentBuffName=" .. tostring(currentBuffName) .. " at index i=" .. tostring(i))
 
                     matchedBuffs = matchedBuffs or {}; -- lazy allocation
                     table.insert(matchedBuffs, {
-                        Index = i - 1,  --  todo  in vanilla-wow we should return 'i-1' but from tbc-wow onwards we should return just 'i' because the APIs for CancelBuff() and so on changed in tbc!
+                        Index = i - 1, --  todo  in vanilla-wow we should return 'i-1' but from tbc-wow onwards we should return just 'i' because the APIs for CancelBuff() and so on changed in tbc!
                         BuffName = currentBuffName,
                     });
 
                     matchedBuffsCount = matchedBuffsCount + 1;
+
+                    if stopAtFirstMatch then
+                        break ;
+                    end
                 end
             end
-
         end
     end
 
@@ -557,18 +568,29 @@ end
 --            end
 --        end
 --
-function findActiveBuffs(unit, exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, ...)
-    return findActiveBuffsImpl(
+function findActiveBuffs(unit, exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, exactBuff7, exactBuff8, exactBuff9, exactBuff10, exactBuff11, exactBuff12, exactBuff13, exactBuff14, exactBuff15)
+    local matchesArray, matchedBuffsCount = findActiveBuffsImpl(
             unit,
-            true, -- exactMatchingNotRegex=true
+            true, --   exactMatchingNotRegex = true
+            false, --       stopAtFirstMatch = false
             exactBuff1,
             exactBuff2,
             exactBuff3,
             exactBuff4,
             exactBuff5,
             exactBuff6,
-            arg ~= nil and unpack(arg) or nil
+            exactBuff7,
+            exactBuff8,
+            exactBuff9,
+            exactBuff10,
+            exactBuff11,
+            exactBuff12,
+            exactBuff13,
+            exactBuff14,
+            exactBuff15
     );
+
+    return matchesArray, matchedBuffsCount;
 end
 
 -- Reads unit's buffs and returns (matchesArray, matchedBuffsCount) where matchesArray is an array of elements { Index = (number), BuffName = (string) }
@@ -585,20 +607,149 @@ end
 --            end
 --        end
 --
-function findRegexedActiveBuffs(unit, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, ...)
-    return findActiveBuffsImpl(
+function findRegexedActiveBuffs(unit, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
+    local matchesArray, matchedBuffsCount = findActiveBuffsImpl(
             unit,
-            false, -- exactMatchingNotRegex=false
+            false, -- exactMatchingNotRegex = false
+            false, --      stopAtFirstMatch = false
             buffRegex1,
             buffRegex2,
             buffRegex3,
             buffRegex4,
             buffRegex5,
             buffRegex6,
-            arg ~= nil and unpack(arg) or nil
+            buffRegex7,
+            buffRegex8,
+            buffRegex9,
+            buffRegex10,
+            buffRegex11,
+            buffRegex12,
+            buffRegex13,
+            buffRegex14,
+            buffRegex15
     );
+
+    return matchesArray, matchedBuffsCount;
 end
 
+-- Reads unit's buffs and returns (matchesArray, matchedBuffsCount) where matchesArray is an array of elements { Index = (number), BuffName = (string) }
+-- sorted by descending buff-index (ie: highest buff-index first) or nil if no buffs matched
+--
+-- Note that string-matching is applied in a case-sensitive manner (this behaviour is different from the legacy isBuffNameActive() which was case-insensitive)
+--
+-- Example usage:
+--
+--        local matchedBuffs = findRegexedActiveBuffs("player", "Shadow Resistance Aura", "Blessing of Wisdom", "Seal of Wisdom")
+--        if matchedBuffs ~= nil then
+--            for _, buffInfo in pairs(matchedBuffs) do
+--                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
+--            end
+--        end
+--
+function findActiveBuffs(unit, exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, exactBuff7, exactBuff8, exactBuff9, exactBuff10, exactBuff11, exactBuff12, exactBuff13, exactBuff14, exactBuff15)
+    local matchesArray, matchedBuffsCount = findActiveBuffsImpl(
+            unit,
+            true, --   exactMatchingNotRegex = true
+            false, --       stopAtFirstMatch = false
+            exactBuff1,
+            exactBuff2,
+            exactBuff3,
+            exactBuff4,
+            exactBuff5,
+            exactBuff6,
+            exactBuff7,
+            exactBuff8,
+            exactBuff9,
+            exactBuff10,
+            exactBuff11,
+            exactBuff12,
+            exactBuff13,
+            exactBuff14,
+            exactBuff15
+    );
+    
+    return matchesArray, matchedBuffsCount;
+end
+
+-- Reads unit's buffs and returns (matchingBuffIndex, matchingBuffName) which is the most recently applied buff (highest index) that matched - or nil if no buffs matched
+--
+-- Note that the matching is exacting and is applied in a case-sensitive manner (this behaviour is different from the legacy isBuffNameActive() which was case-insensitive)
+--
+-- Example usage:
+--
+--        local matchingBuffIndex, matchingBuffName = findMostRecentActiveBuff("player", "Shadow Resistance Aura", "Blessing of Wisdom")
+--        if matchingBuffIndex ~= nil then
+--            print("** index=" .. matchingBuffIndex .. ", name='" .. matchingBuffName .. "'")
+--        end
+--
+function findMostRecentActiveBuff(unit, exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, exactBuff7, exactBuff8, exactBuff9, exactBuff10, exactBuff11, exactBuff12, exactBuff13, exactBuff14, exactBuff15)
+    local matchesArray, matchedBuffsCount = findActiveBuffsImpl(
+            unit,
+            false, --   exactMatchingNotRegex = true
+            true, --         stopAtFirstMatch = true
+            exactBuff1,
+            exactBuff2,
+            exactBuff3,
+            exactBuff4,
+            exactBuff5,
+            exactBuff6,
+            exactBuff7,
+            exactBuff8,
+            exactBuff9,
+            exactBuff10,
+            exactBuff11,
+            exactBuff12,
+            exactBuff13,
+            exactBuff14,
+            exactBuff15
+    );
+
+    if matchedBuffsCount == 0 then
+        return nil, nil;
+    end
+
+    return matchesArray[1].Index, matchesArray[1].BuffName;
+end
+
+-- Reads unit's buffs and returns (matchingBuffIndex, matchingBuffName) which is the most recently applied buff (highest index) that matched - or nil if no buffs matched
+--
+-- Note that the regexes are applied in a case-sensitive manner (this behaviour is different from the legacy isBuffNameActive() which was case-insensitive)
+--
+-- Example usage:
+--
+--        local matchingBuffIndex, matchingBuffName = findMostRecentRegexedActiveBuff("player", ".* Resistance Aura", "Blessing of .*", "Seal of .*")
+--        if matchingBuffIndex ~= nil then
+--            print("** index=" .. matchingBuffIndex .. ", name='" .. matchingBuffName .. "'")
+--        end
+--
+function findMostRecentRegexedActiveBuff(unit, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
+    local matchesArray, matchedBuffsCount = findActiveBuffsImpl(
+            unit,
+            false, --   exactMatchingNotRegex = false
+            true, --         stopAtFirstMatch = true
+            buffRegex1,
+            buffRegex2,
+            buffRegex3,
+            buffRegex4,
+            buffRegex5,
+            buffRegex6,
+            buffRegex7,
+            buffRegex8,
+            buffRegex9,
+            buffRegex10,
+            buffRegex11,
+            buffRegex12,
+            buffRegex13,
+            buffRegex14,
+            buffRegex15
+    );
+    
+    if matchedBuffsCount == 0 then
+        return nil, nil;
+    end
+    
+    return matchesArray[1].Index, matchesArray[1].BuffName;
+end
 
 
 local _havePrintedDeprecationWarningFor_isBuffNameActive = false;
