@@ -456,11 +456,160 @@ end
 function createTooltipFrame()
     if cernieUsefulFunctions == nil then
         cernieUsefulFunctions = CreateFrame("GameTooltip", "cernieUsefulFunctionsTooltip", nil, "GameTooltipTemplate");
+        cernieUsefulFunctionsTooltip:Hide(); -- order
+        cernieUsefulFunctionsTooltip:SetOwner(WorldFrame, "ANCHOR_NONE"); -- order
     end
 end
 
---Reads unit's buffs and returns isBuffActive, buffIndex, numBuffs
+local function findActiveBuffsImpl(unit, exactMatchingNotRegex, buff1, buff2, buff3, buff4, buff5, buff6, ...)
+    unit = unit or "player";
+
+    local extraRegexes = arg ~= nil
+            and unpack(arg)
+            or nil;
+
+    createTooltipFrame();
+
+    -- print("*********")
+
+    local
+    tooltipTextLeft1Tag,
+    currentBuffTextbox,
+    currentBuffName,
+    matchedBuffs,
+    matchedBuffsCount,
+    currentBuffIsMatching = cernieUsefulFunctionsTooltip:GetName() .. "TextLeft1", nil, nil, nil, 0, false;
+    for i = 1, 32 do --00 exhaustive
+        -- local buffTexturePath = UnitBuff(unit, i); --00 better to avoid this kind of check
+        -- if buffTexturePath ~= -1 and buffTexturePath ~= nil then --00 better to avoid this kind of check
+
+        cernieUsefulFunctionsTooltip:SetOwner(WorldFrame, "ANCHOR_NONE"); --   order
+        cernieUsefulFunctionsTooltip:ClearLines();  --                         order
+        cernieUsefulFunctionsTooltip:SetUnitBuff(unit, i); --                  order
+
+        currentBuffTextbox = getglobal(tooltipTextLeft1Tag);
+
+        -- print("*****")
+        -- print("** i=" .. i .. " -> currentBuffTextbox=" .. tostring(currentBuffTextbox))
+
+        if currentBuffTextbox ~= nil then
+
+            currentBuffName = currentBuffTextbox:GetText()
+            if currentBuffName ~= nil then
+                -- print("** i=" .. i .. " -> currentBuffName=" .. tostring(currentBuffName))
+
+                currentBuffIsMatching = (buff1 ~= nil and (exactMatchingNotRegex and currentBuffName == buff1) or (not exactMatchingNotRegex and string.find(currentBuffName, buff1)))
+                        or (buff2 ~= nil and (exactMatchingNotRegex and currentBuffName == buff2) or (not exactMatchingNotRegex and string.find(currentBuffName, buff2)))
+                        or (buff3 ~= nil and (exactMatchingNotRegex and currentBuffName == buff3) or (not exactMatchingNotRegex and string.find(currentBuffName, buff3)))
+                        or (buff4 ~= nil and (exactMatchingNotRegex and currentBuffName == buff4) or (not exactMatchingNotRegex and string.find(currentBuffName, buff4)))
+                        or (buff5 ~= nil and (exactMatchingNotRegex and currentBuffName == buff5) or (not exactMatchingNotRegex and string.find(currentBuffName, buff5)))
+                        or (buff6 ~= nil and (exactMatchingNotRegex and currentBuffName == buff6) or (not exactMatchingNotRegex and string.find(currentBuffName, buff6)));
+                if not currentBuffIsMatching and extraRegexes ~= nil then
+                    for __, extraRegex in pairs(extraRegexes) do
+                        if extraRegex ~= nil and string.find(currentBuffName, extraRegex) then
+                            currentBuffIsMatching = true;
+                            break;
+                        end
+                    end
+                end
+
+                if currentBuffIsMatching then
+                    -- print("** Matching buff found: currentBuffName=" .. tostring(currentBuffName) .. " at index i=" .. tostring(i))
+
+                    matchedBuffs = matchedBuffs or {}; -- lazy allocation
+                    table.insert(matchedBuffs, {
+                        Index = i - 1,  --  todo  in vanilla-wow we should return 'i-1' but from tbc-wow onwards we should return just 'i' because the APIs for CancelBuff() and so on changed in tbc!
+                        BuffName = currentBuffName,
+                    });
+
+                    matchedBuffsCount = matchedBuffsCount + 1;
+                end
+            end
+
+        end
+    end
+
+    if matchedBuffsCount == 0 then
+        return nil, 0;
+    end
+
+    if matchedBuffsCount > 1 then -- if we have only 1 matched buff there is no need to sort
+        table.sort(matchedBuffs, function(a, b) return a.Index > b.Index end) -- sort by descending buff-index
+    end
+
+    return matchedBuffs;
+
+    --00  in twow this method sometimes returns nil even if a buff does in fact exist at the given index
+    --    we should not get tricked and break out of the loop early in that case
+end
+
+-- Reads unit's buffs and returns (matchesArray, matchedBuffsCount) where matchesArray is an array of elements { Index = (number), BuffName = (string) }
+-- sorted by descending buff-index (ie: highest buff-index first) or nil if no buffs matched
+--
+-- Note that string-matching is applied in a case-sensitive manner (this behaviour is different from the legacy isBuffNameActive() which was case-insensitive)
+--
+-- Example usage:
+--
+--        local matchedBuffs = findRegexedActiveBuffs("player", "Shadow Resistance Aura", "Blessing of Wisdom", "Seal of Wisdom")
+--        if matchedBuffs ~= nil then
+--            for _, buffInfo in pairs(matchedBuffs) do
+--                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
+--            end
+--        end
+--
+function findActiveBuffs(unit, exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, ...)
+    return findActiveBuffsImpl(
+            unit,
+            true, -- exactMatchingNotRegex=true
+            exactBuff1,
+            exactBuff2,
+            exactBuff3,
+            exactBuff4,
+            exactBuff5,
+            exactBuff6,
+            arg ~= nil and unpack(arg) or nil
+    );
+end
+
+-- Reads unit's buffs and returns (matchesArray, matchedBuffsCount) where matchesArray is an array of elements { Index = (number), BuffName = (string) }
+-- sorted by descending buff-index (ie: highest buff-index first) or nil if no buffs matched
+--
+-- Note that the regexes are applied in a case-sensitive manner (this behaviour is different from the legacy isBuffNameActive() which was case-insensitive)
+--
+-- Example usage:
+--
+--        local matchedBuffs = findRegexedActiveBuffs("player", ".* Resistance Aura", "Blessing of .*", "Seal of .*")
+--        if matchedBuffs ~= nil then
+--            for _, buffInfo in pairs(matchedBuffs) do
+--                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
+--            end
+--        end
+--
+function findRegexedActiveBuffs(unit, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, ...)
+    return findActiveBuffsImpl(
+            unit,
+            false, -- exactMatchingNotRegex=false
+            buffRegex1,
+            buffRegex2,
+            buffRegex3,
+            buffRegex4,
+            buffRegex5,
+            buffRegex6,
+            arg ~= nil and unpack(arg) or nil
+    );
+end
+
+
+
+local _havePrintedDeprecationWarningFor_isBuffNameActive = false;
+
+--[DEPRECATED: Use findRegexedActiveBuffs() instead] Reads unit's buffs and returns isBuffActive, buffIndex, numBuffs
 function isBuffNameActive(buff, unit)
+    if not _havePrintedDeprecationWarningFor_isBuffNameActive then
+        DEFAULT_CHAT_FRAME:AddMessage("CWF: DEPRECATION WARNING: isBuffNameActive() is deprecated, please use findRegexedActiveBuffs() instead!", 1, 0.5, 0);
+        _havePrintedDeprecationWarningFor_isBuffNameActive = true;
+    end
+    
     unit = unit or "player";
 
     createTooltipFrame();

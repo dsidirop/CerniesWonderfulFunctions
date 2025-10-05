@@ -185,7 +185,25 @@ For example, the following macro command:
 
 <code>/script if(getShapeshiftForm() == 1) then DEFAULT_CHAT_FRAME:AddMessage("I am in Bear Form"); end;</code>
 
-- isBuffNameActive(buff, unit)
+- findRegexedActiveBuffs(unit, buffRegex1, buffRegex2, buffRegex3, ...)
+
+Scans the unit's buffs and returns (matchesArray, matchedBuffsCount) where matchesArray is an array of elements { Index = (number), BuffName = (string) }
+sorted by descending buff-index (ie: highest buff-index first) or nil if no buffs matched
+
+Note that the regexes are applied in a case-sensitive manner (this behaviour is different from the legacy isBuffNameActive() which was case-insensitive)
+
+Example usage:
+
+```lua
+local matchedBuffs = findRegexedActiveBuffs("player", "Blessing of Protection", "Divine Shield")
+if matchedBuffs ~= nil then
+    for _, buffInfo in pairs(matchedBuffs) do
+        print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
+    end
+end
+```
+
+- **[<u>DEPRECATED: Use the findRegexedActiveBuffs() instead</u>]** isBuffNameActive(buff, unit)
 Function to query a buff name on the specified unit. Returns true/false based on if buff name is found, the index of the buff found, and the total 
 number of buffs the unit has. Unit parameter is based on API unit (ie "player" or "target"). Useful in saving space in custom macros for 
 decision based logic. Note this does not work with enemy targets.
