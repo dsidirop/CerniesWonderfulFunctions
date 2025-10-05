@@ -485,7 +485,8 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
     matchedBuffs,
     matchedBuffsCount,
     currentBuffIsMatching = cernieUsefulFunctionsTooltip:GetName() .. "TextLeft1", nil, nil, nil, 0, false;
-    for i = 1, 32 do --00 exhaustive
+    for i = 32, 1, -1 do --00 exhaustive search from 32 (most recent buff) down to 1 (oldest buff)
+
         -- local buffTexturePath = UnitBuff(unit, i); --00 better to avoid this kind of check
         -- if buffTexturePath ~= -1 and buffTexturePath ~= nil then --00 better to avoid this kind of check
 
@@ -522,7 +523,7 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
                         or ( buff15 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff15) or (not exactMatchingNotRegex and string.find(currentBuffName, buff15))) ); --@formatter:on
 
                 if currentBuffIsMatching then
-                    -- print("** Matching buff found: currentBuffName=" .. tostring(currentBuffName) .. " at index i=" .. tostring(i))
+                    -- print("** [" .. time() .. "] Matching buff found: currentBuffName=" .. tostring(currentBuffName) .. " at index i=" .. tostring(i))
 
                     matchedBuffs = matchedBuffs or {}; -- lazy allocation
                     table.insert(matchedBuffs, {
@@ -533,7 +534,7 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
                     matchedBuffsCount = matchedBuffsCount + 1;
 
                     if stopAtFirstMatch then
-                        break ;
+                        break;
                     end
                 end
             end
@@ -542,10 +543,6 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
 
     if matchedBuffsCount == 0 then
         return nil, 0;
-    end
-
-    if matchedBuffsCount > 1 then -- if we have only 1 matched buff there is no need to sort
-        table.sort(matchedBuffs, function(a, b) return a.Index > b.Index end) -- sort by descending buff-index
     end
 
     return matchedBuffs;
@@ -561,7 +558,7 @@ end
 --
 -- Example usage:
 --
---        local matchedBuffs = findRegexedActiveBuffs("player", "Shadow Resistance Aura", "Blessing of Wisdom", "Seal of Wisdom")
+--        local matchedBuffs = findActiveBuffs("player", "Shadow Resistance Aura", "Blessing of Wisdom", "Seal of Wisdom")
 --        if matchedBuffs ~= nil then
 --            for _, buffInfo in pairs(matchedBuffs) do
 --                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
@@ -629,45 +626,6 @@ function findRegexedActiveBuffs(unit, buffRegex1, buffRegex2, buffRegex3, buffRe
             buffRegex15
     );
 
-    return matchesArray, matchedBuffsCount;
-end
-
--- Reads unit's buffs and returns (matchesArray, matchedBuffsCount) where matchesArray is an array of elements { Index = (number), BuffName = (string) }
--- sorted by descending buff-index (ie: highest buff-index first) or nil if no buffs matched
---
--- Note that string-matching is applied in a case-sensitive manner (this behaviour is different from the legacy isBuffNameActive() which was case-insensitive)
---
--- Example usage:
---
---        local matchedBuffs = findRegexedActiveBuffs("player", "Shadow Resistance Aura", "Blessing of Wisdom", "Seal of Wisdom")
---        if matchedBuffs ~= nil then
---            for _, buffInfo in pairs(matchedBuffs) do
---                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
---            end
---        end
---
-function findActiveBuffs(unit, exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, exactBuff7, exactBuff8, exactBuff9, exactBuff10, exactBuff11, exactBuff12, exactBuff13, exactBuff14, exactBuff15)
-    local matchesArray, matchedBuffsCount = findActiveBuffsImpl(
-            unit,
-            true, --   exactMatchingNotRegex = true
-            false, --       stopAtFirstMatch = false
-            exactBuff1,
-            exactBuff2,
-            exactBuff3,
-            exactBuff4,
-            exactBuff5,
-            exactBuff6,
-            exactBuff7,
-            exactBuff8,
-            exactBuff9,
-            exactBuff10,
-            exactBuff11,
-            exactBuff12,
-            exactBuff13,
-            exactBuff14,
-            exactBuff15
-    );
-    
     return matchesArray, matchedBuffsCount;
 end
 

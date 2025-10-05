@@ -195,11 +195,46 @@ Note that the regexes are applied in a case-sensitive manner (this behaviour is 
 Example usage:
 
 ```lua
-local matchedBuffs = findRegexedActiveBuffs("player", "Blessing of Protection", "Divine Shield")
+local matchedBuffs = findRegexedActiveBuffs("player", "^Blessing of .*", "^Divine .*")
 if matchedBuffs ~= nil then
     for _, buffInfo in pairs(matchedBuffs) do
         print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
     end
+end
+```
+
+- findActiveBuffs(unit, buff1, buff2, buff3, ...)
+
+Like findRegexedActiveBuffs() but does exact string matching instead of regex matching.
+
+```lua
+local matchedBuffs = findActiveBuffs("player", "Blessing of Protection", "Divine Shield")
+if matchedBuffs ~= nil then
+    for _, buffInfo in pairs(matchedBuffs) do
+        print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
+    end
+end
+```
+
+- findMostRecentActiveBuff(unit, buff1, buff2, buff3, ...)
+
+Like findActiveBuffs() but returns only the most recently applied buff (ie: the one with the highest buff-index) or nil if none of the specified buffs are active.
+
+```lua
+local matchingBuffIndex, matchingBuffName = findMostRecentActiveBuff("player", "Blessing of Protection", "Divine Shield")
+if matchingBuffIndex ~= nil then
+    print("Most recent buff is index=" .. matchingBuffIndex .. ", name='" .. matchingBuffName .. "'")
+end
+```
+
+- findMostRecentRegexedActiveBuff(unit, buff1, buff2, buff3, ...)
+
+Like findMostRecentActiveBuff() but uses regex matching instead of exact string matching.
+
+```lua
+local matchingBuffIndex, matchingBuffName = findMostRecentRegexedActiveBuff("player", "^Blessing of .*", "^Divine .*")
+if matchingBuffIndex ~= nil then
+    print("Most recent buff is index=" .. matchingBuffIndex .. ", name='" .. matchingBuffName .. "'")
 end
 ```
 
