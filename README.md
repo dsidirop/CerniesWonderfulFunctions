@@ -185,7 +185,60 @@ For example, the following macro command:
 
 <code>/script if(getShapeshiftForm() == 1) then DEFAULT_CHAT_FRAME:AddMessage("I am in Bear Form"); end;</code>
 
-- isBuffNameActive(buff, unit)
+- findRegexedActiveBuffs(unit, buffRegex1, buffRegex2, buffRegex3, ...)
+
+Scans the unit's buffs and returns (matchesArray, matchedBuffsCount) where matchesArray is an array of elements { Index = (number), BuffName = (string) }
+sorted by descending buff-index (ie: highest buff-index first) or nil if no buffs matched
+
+Note that the regexes are applied in a case-sensitive manner (this behaviour is different from the legacy isBuffNameActive() which was case-insensitive)
+
+Example usage:
+
+```lua
+local matchedBuffs = findRegexedActiveBuffs("player", "^Blessing of .*", "^Divine .*")
+if matchedBuffs ~= nil then
+    for _, buffInfo in pairs(matchedBuffs) do
+        print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
+    end
+end
+```
+
+- findActiveBuffs(unit, buff1, buff2, buff3, ...)
+
+Like findRegexedActiveBuffs() but does exact string matching instead of regex matching.
+
+```lua
+local matchedBuffs = findActiveBuffs("player", "Blessing of Protection", "Divine Shield")
+if matchedBuffs ~= nil then
+    for _, buffInfo in pairs(matchedBuffs) do
+        print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
+    end
+end
+```
+
+- findMostRecentActiveBuff(unit, buff1, buff2, buff3, ...)
+
+Like findActiveBuffs() but returns only the most recently applied buff (ie: the one with the highest buff-index) or nil if none of the specified buffs are active.
+
+```lua
+local matchingBuffIndex, matchingBuffName = findMostRecentActiveBuff("player", "Blessing of Protection", "Divine Shield")
+if matchingBuffIndex ~= nil then
+    print("Most recent buff is index=" .. matchingBuffIndex .. ", name='" .. matchingBuffName .. "'")
+end
+```
+
+- findMostRecentRegexedActiveBuff(unit, buff1, buff2, buff3, ...)
+
+Like findMostRecentActiveBuff() but uses regex matching instead of exact string matching.
+
+```lua
+local matchingBuffIndex, matchingBuffName = findMostRecentRegexedActiveBuff("player", "^Blessing of .*", "^Divine .*")
+if matchingBuffIndex ~= nil then
+    print("Most recent buff is index=" .. matchingBuffIndex .. ", name='" .. matchingBuffName .. "'")
+end
+```
+
+- **[<u>DEPRECATED: Use the findRegexedActiveBuffs() instead</u>]** isBuffNameActive(buff, unit)
 Function to query a buff name on the specified unit. Returns true/false based on if buff name is found, the index of the buff found, and the total 
 number of buffs the unit has. Unit parameter is based on API unit (ie "player" or "target"). Useful in saving space in custom macros for 
 decision based logic. Note this does not work with enemy targets.
@@ -307,6 +360,38 @@ Function to turn auto attack on or off based on what is passed to switch. Switch
 For example, the following macro command:
 
 <code>/script ToggleAutoAttack("on")</code>
+
+- CastSpellIfSpecifiedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, buff1, buff2, buff3, ...)
+
+Casts the specified spell if the specified regexed-buffs are all missing from the 'scanUnit'. If the parameter onself is set to false then the
+spell will be cast on the player's target instead of on the player. If the parameter useStopCastingFirst is set to true then
+the function will first stop any current spellcasting before attempting to cast the specified spell.
+
+Returns true if the spell was cast (because all specified buffs where missing), false otherwise.
+
+<code/>/script CastSpellIfSpecifiedBuffsAreAllMissing("player", "Righteous Fury")</code>
+<code/>/script CastSpellIfSpecifiedBuffsAreAllMissing("player", "Fire Resistance Aura")</code>
+<code/>/script CastSpellIfSpecifiedBuffsAreAllMissing("player", "Fire Resistance Aura", true, true, "Fire Resistance Aura", "Frost Resistance Aura", "Shadow Resistance Aura")</code>
+
+You can even chain such calls like so:
+
+```lua
+-- aura dancing for paladins
+_ =      CastSpellIfSpecifiedBuffsAreAllMissing("player",   "Devotion Aura") -- will swap back and forth between these two
+     or  CastSpellIfSpecifiedBuffsAreAllMissing("player",   "Fire Resistance Aura")
+```
+
+- CastSpellIfSpecifiedRegexedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, regexBuff1, regexBuff2, regexBuff3, ...)
+
+Like CastSpellIfSpecifiedBuffsAreAllMissing() but uses regex-matching instead of exact string matching.
+
+- CastSpellIfAnySpecifiedBuffIsPresent(scanUnit, spell, onSelf, useStopCastingFirst, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+
+This is the inverse of CastSpellIfSpecifiedBuffsAreAllMissing(). This function casts the specified spell if any of the specified buffs are present on the 'scanUnit'.
+
+- CastSpellIfAnySpecifiedRegexedBuffIsPresent(scanUnit, spell, onSelf, useStopCastingFirst, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
+
+Like CastSpellIfAnySpecifiedBuffIsPresent() but uses regex-matching instead of exact string matching.
 
 - isInBag(itemName)
 Function to find a container item based on the item name. Returns boolean (true/false) based on if the item is found, the item's bag id, and the item's slot id.
