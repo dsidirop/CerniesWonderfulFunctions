@@ -1,6 +1,29 @@
 CerniesWonderfulFunctions = {};
 CWF_isPlayerInCombat = false;
 
+local _tostring = tostring
+
+local _strsub = string.sub
+local _strfind = string.find
+local _strlower = string.lower
+
+local _getn = table.getn
+local _tblinsert = table.insert
+
+--Function to split a string
+function _strsplit(self, delimiter)
+    local result = { }
+    local from = 1
+    local delim_from, delim_to = _strfind(self, delimiter, from)
+    while delim_from do
+        _tblinsert(result, _strsub(self, from, delim_from - 1))
+        from = delim_to + 1
+        delim_from, delim_to = _strfind(self, delimiter, from)
+    end
+    _tblinsert(result, _strsub(self, from))
+    return result
+end
+
 function CerniesWonderfulFunctions_OnLoad()
     this:RegisterEvent("PLAYER_LOGIN")
     this:RegisterEvent("PLAYER_REGEN_DISABLED")
@@ -78,7 +101,7 @@ function UseBGBandage(
             normal06, normal07, normal08, normal09, normal10,
             normal11, normal12, normal13, normal14, normal15
         };
-        for i = 1, table.getn(normals), 1 do
+        for i = 1, _getn(normals), 1 do
             local normalFound, normalBag, normalSlot = isInBag(normals[i]);
             if (normalFound == true) then
                 UseContainerItem(normalBag, normalSlot);
@@ -183,7 +206,7 @@ function UseManaPotion()
 
         --otherwise loop through the rest of the possible potions and use the highest value potion available
     else
-        for i = 2, table.getn(potion), 1 do
+        for i = 2, _getn(potion), 1 do
             potFound, potBag, potSlot = isInBag(potion[i]);
             if (potFound) then
                 _, duration, _ = GetContainerItemCooldown(potBag, potSlot);
@@ -207,7 +230,7 @@ function UseExoticManaBooster()
 
     local msg = "Nothing"
     local potFound, potBag, potSlot, duration
-    for i = 1, table.getn(potion), 1 do
+    for i = 1, _getn(potion), 1 do
         potFound, potBag, potSlot = isInBag(potion[i])
         if (potFound) then
             _, duration, _ = GetContainerItemCooldown(potBag, potSlot)
@@ -230,7 +253,7 @@ function UseArmorPotion()
 
     local msg = "Nothing"
     local potFound, potBag, potSlot, duration
-    for i = 1, table.getn(potion), 1 do
+    for i = 1, _getn(potion), 1 do
         potFound, potBag, potSlot = isInBag(potion[i])
         if (potFound) then
             _, duration, _ = GetContainerItemCooldown(potBag, potSlot)
@@ -267,7 +290,7 @@ function UseHealthPotion()
 
         --otherwise loop through the rest of the possible potions and use the highest value potion available
     else
-        for i = 2, table.getn(potion), 1 do
+        for i = 2, _getn(potion), 1 do
             potFound, potBag, potSlot = isInBag(potion[i]);
             if (potFound) then
                 _, duration, _ = GetContainerItemCooldown(potBag, potSlot);
@@ -346,7 +369,7 @@ function Fish(pole)
     if (pole_hasPole == true and (mainHandLink == nil or mainHandName ~= pole)) then
         UseContainerItem(pole_bag, pole_slot, 1);
     elseif (mod == true) then
-        for i = 1, table.getn(lures), 1 do
+        for i = 1, _getn(lures), 1 do
             lureFound, lureBag, lureSlot = isInBag(lures[i]);
             if (lureFound) then
                 UseContainerItem(lureBag, lureSlot);
@@ -385,7 +408,7 @@ function Shapeshift(form, isPowerShift, isGCD)
     for i = 1, GetNumShapeshiftForms(), 1
     do
         _, formName, active = GetShapeshiftFormInfo(i);
-        if (string.find(formName, form)) then
+        if (_strfind(formName, form)) then
             targetFormId = i;
         end
         if (active ~= nil) then
@@ -497,36 +520,36 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
         currentBuffTextbox = getglobal(tooltipTextLeft1Tag);
 
         -- print("*****")
-        -- print("** i=" .. i .. " -> currentBuffTextbox=" .. tostring(currentBuffTextbox))
+        -- print("** i=" .. i .. " -> currentBuffTextbox=" .. _tostring(currentBuffTextbox))
 
         if currentBuffTextbox ~= nil then
 
             currentBuffName = currentBuffTextbox:GetText()
             if currentBuffName ~= nil then
-                -- print("** i=" .. i .. " -> currentBuffName=" .. tostring(currentBuffName))
+                -- print("** i=" .. i .. " -> currentBuffName=" .. _tostring(currentBuffName))
 
                 currentBuffIsMatching = --@formatter:off
-                           (  buff1 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff1 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff1))) )
-                        or (  buff2 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff2 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff2))) )
-                        or (  buff3 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff3 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff3))) )
-                        or (  buff4 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff4 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff4))) )
-                        or (  buff5 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff5 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff5))) )
-                        or (  buff6 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff6 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff6))) )
-                        or (  buff7 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff7 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff7))) )
-                        or (  buff8 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff8 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff8))) )
-                        or (  buff9 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff9 ) or (not exactMatchingNotRegex and string.find(currentBuffName,  buff9))) )
-                        or ( buff10 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff10) or (not exactMatchingNotRegex and string.find(currentBuffName, buff10))) )
-                        or ( buff11 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff11) or (not exactMatchingNotRegex and string.find(currentBuffName, buff11))) )
-                        or ( buff12 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff12) or (not exactMatchingNotRegex and string.find(currentBuffName, buff12))) )
-                        or ( buff13 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff13) or (not exactMatchingNotRegex and string.find(currentBuffName, buff13))) )
-                        or ( buff14 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff14) or (not exactMatchingNotRegex and string.find(currentBuffName, buff14))) )
-                        or ( buff15 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff15) or (not exactMatchingNotRegex and string.find(currentBuffName, buff15))) ); --@formatter:on
+                           (  buff1 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff1 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff1))) )
+                        or (  buff2 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff2 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff2))) )
+                        or (  buff3 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff3 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff3))) )
+                        or (  buff4 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff4 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff4))) )
+                        or (  buff5 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff5 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff5))) )
+                        or (  buff6 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff6 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff6))) )
+                        or (  buff7 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff7 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff7))) )
+                        or (  buff8 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff8 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff8))) )
+                        or (  buff9 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff9 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff9))) )
+                        or ( buff10 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff10) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff10))) )
+                        or ( buff11 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff11) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff11))) )
+                        or ( buff12 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff12) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff12))) )
+                        or ( buff13 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff13) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff13))) )
+                        or ( buff14 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff14) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff14))) )
+                        or ( buff15 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff15) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff15))) ); --@formatter:on
 
                 if currentBuffIsMatching then
-                    -- print("** [" .. time() .. "] Matching buff found: currentBuffName=" .. tostring(currentBuffName) .. " at index i=" .. tostring(i))
+                    -- print("** [" .. time() .. "] Matching buff found: currentBuffName=" .. _tostring(currentBuffName) .. " at index i=" .. _tostring(i))
 
                     matchedBuffs = matchedBuffs or {}; -- lazy allocation
-                    table.insert(matchedBuffs, {
+                    _tblinsert(matchedBuffs, {
                         Index = i - 1, --  todo  in vanilla-wow we should return 'i-1' but from tbc-wow onwards we should return just 'i' because the APIs for CancelBuff() and so on changed in tbc!
                         BuffName = currentBuffName,
                     });
@@ -867,7 +890,7 @@ function isBuffNameActive(buff, unit)
         cernieUsefulFunctionsTooltip:SetUnitBuff(unit, i);
         textleft1 = getglobal(cernieUsefulFunctionsTooltip:GetName() .. "TextLeft1");
 
-        if (textleft1 ~= nil and string.find(string.lower(textleft1:GetText()), string.lower(buff))) then
+        if (textleft1 ~= nil and _strfind(_strlower(textleft1:GetText()), _strlower(buff))) then
             isBuffActive = true;
             buffIndex = i - 1;
         end
@@ -898,7 +921,7 @@ function isDebuffNameActive(debuff, unit)
         cernieUsefulFunctionsTooltip:SetUnitDebuff(unit, i);
         textleft1 = getglobal(cernieUsefulFunctionsTooltip:GetName() .. "TextLeft1");
 
-        if (textleft1 ~= nil and string.find(string.lower(textleft1:GetText()), string.lower(debuff))) then
+        if (textleft1 ~= nil and _strfind(_strlower(textleft1:GetText()), _strlower(debuff))) then
             isDebuffActive = true;
             debuffIndex = i - 1;
         end
@@ -936,7 +959,7 @@ function isTargetDebuff(target, debuff)
     local isDebuff = false;
     for i = 1, 40
     do
-        if (strfind(tostring(UnitDebuff(target, i)), debuff)) then
+        if (_strfind(_tostring(UnitDebuff(target, i)), debuff)) then
             isDebuff = true;
         end
     end
@@ -1052,7 +1075,7 @@ function findActionSlot(spellTexture)
     for i = 1, 120, 1
     do
         if (GetActionTexture(i) ~= nil) then
-            if (strfind(GetActionTexture(i), spellTexture)) then
+            if (_strfind(GetActionTexture(i), spellTexture)) then
                 return i;
             end
         end
@@ -1080,7 +1103,7 @@ function isInBag(itemNameRegex)
     for bag = 0, 4, 1 do
         for slot = 1, GetContainerNumSlots(bag), 1 do
             local name = getItemName(GetContainerItemLink(bag, slot))
-            if name and string.find(name, itemNameRegex) == 1 then
+            if name and _strfind(name, itemNameRegex) == 1 then
                 found = true;
                 itemBag = bag;
                 itemSlot = slot;
@@ -1101,10 +1124,10 @@ function getItemName(itemLink)
         return nil
     end
 
-    return string.sub(
+    return _strsub(
             itemLink,
-            string.find(itemLink, bracketStart, 1, true) + 3,
-            string.find(itemLink, bracketEnd, 1, true) - 1
+            _strfind(itemLink, bracketStart, 1, true) + 3,
+            _strfind(itemLink, bracketEnd, 1, true) - 1
     );
 end
 
@@ -1117,7 +1140,7 @@ function isBuffTextureActive(texture)
 
     while not (g(i) == -1)
     do
-        if (strfind(GetPlayerBuffTexture(g(i)), texture)) then
+        if (_strfind(GetPlayerBuffTexture(g(i)), texture)) then
             isBuffActive = true;
             buffIndex = i;
         end
@@ -1132,22 +1155,8 @@ function getBuffTextures()
     local g = GetPlayerBuff;
     while not (g(i) == -1)
     do
-        local buffName = string.split(GetPlayerBuffTexture(g(i)), "Icons\\");
+        local buffName = _strsplit(GetPlayerBuffTexture(g(i)), "Icons\\");
         DEFAULT_CHAT_FRAME:AddMessage("" .. i .. ": " .. buffName[2] .. "");
         i = i + 1
     end
-end
-
---Function to split a string
-function string:split(delimiter)
-    local result = { }
-    local from = 1
-    local delim_from, delim_to = string.find(self, delimiter, from)
-    while delim_from do
-        table.insert(result, string.sub(self, from, delim_from - 1))
-        from = delim_to + 1
-        delim_from, delim_to = string.find(self, delimiter, from)
-    end
-    table.insert(result, string.sub(self, from))
-    return result
 end
