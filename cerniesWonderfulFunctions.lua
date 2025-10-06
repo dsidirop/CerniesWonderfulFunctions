@@ -712,13 +712,13 @@ end
 function CastSpellIfSpecifiedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
     buff1 = buff1 or spell; -- if buff1 is not specified, assume the buff to check for is the same as the spell to cast
     
-    local mostRecentBuffIndex = findMostRecentActiveBuff(scanUnit, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+    local mostRecentBuffIndex = findMostRecentActiveBuff(scanUnit, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15);
     if mostRecentBuffIndex ~= nil then
-        return false -- at least one buff found, do not cast
+        return false; -- at least one buff found, do not cast
     end
 
     if useStopCastingFirst then
-        SpellStopCasting()
+        SpellStopCasting();
     end
 
     onSelf = onSelf == nil
@@ -733,28 +733,28 @@ end
 function CastSpellIfSpecifiedRegexedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
     buffRegex1 = buffRegex1 or spell; -- if buff1 is not specified, assume the buff to check for is the same as the spell to cast
     
-    local mostRecentBuffIndex = findMostRecentRegexedActiveBuff(scanUnit, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
+    local mostRecentBuffIndex = findMostRecentRegexedActiveBuff(scanUnit, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15);
     if mostRecentBuffIndex ~= nil then
-        return false -- at least one buff found, do not cast
+        return false; -- at least one buff found, do not cast
     end
 
     if useStopCastingFirst then
-        SpellStopCasting()
+        SpellStopCasting();
     end
 
     onSelf = onSelf == nil
             and true
             or onSelf;
 
-    CastSpellByName(spell, onSelf)
+    CastSpellByName(spell, onSelf);
     
-    return true
+    return true;
 end
 
 function CastSpellIfAnySpecifiedBuffIsPresent(scanUnit, spell, onSelf, useStopCastingFirst, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
     buff1 = buff1 or spell; -- if buff1 is not specified, assume the buff to check for is the same as the spell to cast
 
-    local mostRecentBuffIndex = findMostRecentActiveBuff(scanUnit, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+    local mostRecentBuffIndex = findMostRecentActiveBuff(scanUnit, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15);
     if mostRecentBuffIndex == nil then
         return false; -- none of the specified buffs was found
     end
@@ -790,9 +790,55 @@ function CastSpellIfAnySpecifiedRegexedBuffIsPresent(scanUnit, spell, onSelf, us
 
     CastSpellByName(spell, onSelf);
 
-    return true
+    return true;
 end
 
+local _lastCancelPlayerBuffTimestamp = 0;
+
+local function cancelPlayerBuffByNameImpl(useExactMatchingNotRegexes, throttlingTimeInSeconds, buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
+    throttlingTimeInSeconds = (throttlingTimeInSeconds == nil or throttlingTimeInSeconds < 0)
+            and 1 -- default to 1 seconds
+            or throttlingTimeInSeconds;
+
+    local now = time();
+    if now - _lastCancelPlayerBuffTimestamp < throttlingTimeInSeconds then
+        return false; -- throttled
+    end
+
+    local matchingBuffIndex, matchingBuffName = useExactMatchingNotRegexes
+            and findMostRecentActiveBuff("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
+            or findMostRecentRegexedActiveBuff("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
+    if matchingBuffIndex == nil then
+        return false;
+    end
+
+    _lastCancelPlayerBuffTimestamp = now;
+
+    CancelPlayerBuff(matchingBuffIndex); --00
+
+    return true;
+
+    -- 00  its prudent to cancel one buff at a time because there are known issues whereby spamming cancel-buff commands
+    --     can cause the client to desync and either not cancel the buff at all or start canceling the wrong buffs altogether!
+end
+
+function CancelPlayerBuffByName(throttlingTimeInSeconds, exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, exactBuff7, exactBuff8, exactBuff9, exactBuff10, exactBuff11, exactBuff12, exactBuff13, exactBuff14, exactBuff15)
+    return cancelPlayerBuffByNameImpl(
+            true, --   useExactMatchingNotRegexes=true
+            throttlingTimeInSeconds,
+            exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, exactBuff7,
+            exactBuff8, exactBuff9, exactBuff10, exactBuff11, exactBuff12, exactBuff13, exactBuff14, exactBuff15
+    );
+end
+
+function CancelPlayerBuffByRegexedName(throttlingTimeInSeconds, regexedBuff1, regexedBuff2, regexedBuff3, regexedBuff4, regexedBuff5, regexedBuff6, regexedBuff7, regexedBuff8, regexedBuff9, regexedBuff10, regexedBuff11, regexedBuff12, regexedBuff13, regexedBuff14, regexedBuff15)
+    return cancelPlayerBuffByNameImpl(
+            false, --   useExactMatchingNotRegexes=false
+            throttlingTimeInSeconds,
+            regexedBuff1, regexedBuff2, regexedBuff3, regexedBuff4, regexedBuff5, regexedBuff6, regexedBuff7,
+            regexedBuff8, regexedBuff9, regexedBuff10, regexedBuff11, regexedBuff12, regexedBuff13, regexedBuff14, regexedBuff15
+    );
+end
 
 
 local _havePrintedDeprecationWarningFor_isBuffNameActive = false;
