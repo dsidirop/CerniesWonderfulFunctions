@@ -324,6 +324,17 @@ if turnedOnNow then
 end
 ```
 
+- isEdwardTheOddBuffProcced()
+
+Function to determine if the buff from 'Hand of Edward the Odd' (world BoE weapon) is currently active. Returns boolean (true or false).
+
+```lua
+local isActive = isEdwardTheOddBuffProcced()
+if isActive then
+    CastSpellByName("Holy Light", 1) -- or CastSpellByName("Holy Wrath")
+end
+```
+
 - **[<u>DEPRECATED: Use the findRegexedActiveBuffs() instead</u>]** isBuffNameActive(buff, unit)
 Function to query a buff name on the specified unit. Returns true/false based on if buff name is found, the index of the buff found, and the total 
 number of buffs the unit has. Unit parameter is based on API unit (ie "player" or "target"). Useful in saving space in custom macros for 
