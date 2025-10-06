@@ -1133,30 +1133,36 @@ end
 
 --Helper function to determine if a specific buff texture is active on the player
 function isBuffTextureActive(texture)
-    local i = 0;
     local g = GetPlayerBuff;
     local buffIndex = -1;
     local isBuffActive = false;
 
-    while not (g(i) == -1)
-    do
-        if (_strfind(GetPlayerBuffTexture(g(i)), texture)) then
-            isBuffActive = true;
-            buffIndex = i;
+    for buffId=1, 64, 1 do
+        buffIndex = g(buffId)
+        if buffIndex == -1 then
+            break;
         end
-        i = i + 1
+        
+        if _strfind(GetPlayerBuffTexture(buffIndex), texture) then
+            return true, buffId;
+        end
     end
-    return isBuffActive, buffIndex;
+    
+    return false, -1;
 end
 
 --Helper function for a user to determine buff texture names
-function getBuffTextures()
-    local i = 0;
+function printBuffTextures()
     local g = GetPlayerBuff;
-    while not (g(i) == -1)
-    do
-        local buffName = _strsplit(GetPlayerBuffTexture(g(i)), "Icons\\");
-        DEFAULT_CHAT_FRAME:AddMessage("" .. i .. ": " .. buffName[2] .. "");
-        i = i + 1
+    local buffIndex;
+
+    for buffId=1, 64, 1 do
+        buffIndex = g(buffId);
+        if buffIndex == -1 then
+            break;
+        end
+
+        local buffName = _strsplit(GetPlayerBuffTexture(buffIndex), "Icons\\");
+        DEFAULT_CHAT_FRAME:AddMessage("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(buffName[2] or "nil"));
     end
 end
