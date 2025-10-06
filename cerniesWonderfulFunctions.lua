@@ -1132,18 +1132,14 @@ function getItemName(itemLink)
 end
 
 --Helper function to determine if a specific buff texture is active on the player
-function isBuffTextureActive(texture)
+function isBuffTextureActive(textureRegex)
     local g = GetPlayerBuff;
     local buffIndex = -1;
     local isBuffActive = false;
 
-    for buffId=1, 64, 1 do
+    for buffId=64, 0, -1 do -- prefer exhaustive reverse search    in twow we need to also scan buffId=0 despite what the docs say about buffId being 1..16
         buffIndex = g(buffId)
-        if buffIndex == -1 then
-            break;
-        end
-        
-        if _strfind(GetPlayerBuffTexture(buffIndex), texture) then
+        if buffIndex ~= -1 and _strfind(GetPlayerBuffTexture(buffIndex) or "", textureRegex) then
             return true, buffId;
         end
     end
@@ -1156,13 +1152,11 @@ function printBuffTextures()
     local g = GetPlayerBuff;
     local buffIndex;
 
-    for buffId=1, 64, 1 do
+    for buffId=0, 64, 1 do -- in twow we need to also scan buffId=0 despite what the docs say about buffId being 1..16
         buffIndex = g(buffId);
-        if buffIndex == -1 then
-            break;
+        if buffIndex ~= -1 then -- prefer exhaustive scanning
+            local buffName = _strsplit(GetPlayerBuffTexture(buffIndex) or "", "Icons\\");
+            DEFAULT_CHAT_FRAME:AddMessage("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(buffName[2] or "nil"));
         end
-
-        local buffName = _strsplit(GetPlayerBuffTexture(buffIndex), "Icons\\");
-        DEFAULT_CHAT_FRAME:AddMessage("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(buffName[2] or "nil"));
     end
 end
