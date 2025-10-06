@@ -484,18 +484,280 @@ function createTooltipFrame()
     end
 end
 
-local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
-    local extraRegexes = arg;
-    
+-----------------------------------------------
+
+local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopAtFirstMatch, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
     unit = unit or "player";
 
     stopAtFirstMatch = stopAtFirstMatch == nil
             and true
-            or false;
+            or stopAtFirstMatch;
 
     exactMatchingNotRegex = exactMatchingNotRegex == nil
             and true
-            or false;
+            or exactMatchingNotRegex;
+
+    -- print("*********")
+    -- print("** [" .. time() .. "] findActiveBuffsViaTexturesImpl: unit=" .. _tostring(unit) .. ", exactMatchingNotRegex=" .. _tostring(exactMatchingNotRegex) .. ", stopAtFirstMatch=" .. _tostring(stopAtFirstMatch))
+    -- print("** [" .. time() .. "] buff1='" .. _tostring(buff1) .. "'")
+    -- print("** [" .. time() .. "] buff2='" .. _tostring(buff2) .. "'")
+    -- print("** [" .. time() .. "] buff3='" .. _tostring(buff3) .. "'")
+
+    local
+    buffIndex,
+    matchedBuffs,
+    matchedBuffsCount,
+    currentBuffTexture,
+    currentBuffIsMatching = -1, nil, 0, nil, false;
+    for i = 32, 0, -1 do --00 exhaustive search from 32 (most recent buff) down to 1 (oldest buff)
+
+        -- print("*****")
+
+        buffIndex = GetPlayerBuff(i)
+        if buffIndex ~= nil and buffIndex >= 0 then -- better not to break out of the loop if we get an intermittent negative or nil
+            currentBuffTexture = GetPlayerBuffTexture(buffIndex)
+
+            if currentBuffTexture ~= nil then
+                if exactMatchingNotRegex then
+                    currentBuffTexture = _strlower(currentBuffTexture);
+                    buff1 = buff1 ~= nil and _strlower(buff1) or nil; -- prepare for case-insensitive comparison
+                    buff2 = buff2 ~= nil and _strlower(buff2) or nil;
+                    buff3 = buff3 ~= nil and _strlower(buff3) or nil;
+                    buff4 = buff4 ~= nil and _strlower(buff4) or nil;
+                    buff5 = buff5 ~= nil and _strlower(buff5) or nil;
+                    buff6 = buff6 ~= nil and _strlower(buff6) or nil;
+                    buff7 = buff7 ~= nil and _strlower(buff7) or nil;
+                    buff8 = buff8 ~= nil and _strlower(buff8) or nil;
+                    buff9 = buff9 ~= nil and _strlower(buff9) or nil;
+                    buff10 = buff10 ~= nil and _strlower(buff10) or nil;
+                    buff11 = buff11 ~= nil and _strlower(buff11) or nil;
+                    buff12 = buff12 ~= nil and _strlower(buff12) or nil;
+                    buff13 = buff13 ~= nil and _strlower(buff13) or nil;
+                    buff14 = buff14 ~= nil and _strlower(buff14) or nil;
+                    buff15 = buff15 ~= nil and _strlower(buff15) or nil;
+                end
+
+                --@formatter:off
+                currentBuffIsMatching =
+                           (  buff1 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff1 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff1))) )
+                        or (  buff2 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff2 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff2))) )
+                        or (  buff3 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff3 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff3))) )
+                        or (  buff4 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff4 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff4))) )
+                        or (  buff5 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff5 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff5))) )
+                        or (  buff6 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff6 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff6))) )
+                        or (  buff7 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff7 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff7))) )
+                        or (  buff8 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff8 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff8))) )
+                        or (  buff9 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff9 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff9))) )
+                        or ( buff10 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff10) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff10))) )
+                        or ( buff11 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff11) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff11))) )
+                        or ( buff12 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff12) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff12))) )
+                        or ( buff13 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff13) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff13))) )
+                        or ( buff14 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff14) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff14))) )
+                        or ( buff15 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff15) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff15))));
+                --@formatter:on
+
+                -- print("** [" .. time() .. "] i=" .. _tostring(i) .. ", currentBuffIsMatching=" .. _tostring(currentBuffIsMatching) .. ", buffIndex=" .. _tostring(buffIndex) .. ", currentBuffTexture=" .. _tostring(currentBuffTexture))
+                
+                if currentBuffIsMatching then
+                    -- print("** [" .. time() .. "] Matching buff found: currentBuffTexture=" .. _tostring(currentBuffTexture) .. " at buffIndex=" .. _tostring(buffIndex))
+
+                    matchedBuffs = matchedBuffs or {}; -- lazy allocation
+                    _tblinsert(matchedBuffs, {
+                        Index = buffIndex, --  todo  in vanilla-wow we should return 'i' (zero-based) but from tbc-wow onwards we MIGHT have to return 'i + 1' if it turns out that the indices are still zero based (doubt it)
+                        BuffTexture = currentBuffTexture,
+                    });
+
+                    matchedBuffsCount = matchedBuffsCount + 1;
+
+                    if stopAtFirstMatch then
+                        break;
+                    end
+                end
+            end
+        end
+    end
+
+    if matchedBuffsCount == 0 then
+        return nil, 0;
+    end
+
+    return matchedBuffs;
+
+    --00  in twow this method sometimes returns nil even if a buff does in fact exist at the given index
+    --    we should not get tricked and break out of the loop early in that case
+end
+
+-- Reads unit's buffs and returns (matchesArray, matchedBuffsCount) where matchesArray is an array of elements { Index = (number), BuffTexture = (string) }
+-- sorted by descending buff-index (ie: highest buff-index first) or nil if no buffs matched
+--
+-- Note that string-matching is applied in a case-insensitive manner.
+--
+-- Example usage:
+--
+--        local matchedBuffs = findActiveBuffs("player", "Shadow Resistance Aura", "Blessing of Wisdom", "Seal of Wisdom")
+--        if matchedBuffs ~= nil then
+--            for _, buffInfo in pairs(matchedBuffs) do
+--                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffTexture .. "'")
+--            end
+--        end
+--
+function findActiveBuffsViaTextures(unit, exactBuffTexture1, exactBuffTexture2, exactBuffTexture3, exactBuffTexture4, exactBuffTexture5, exactBuffTexture6, exactBuffTexture7, exactBuffTexture8, exactBuffTexture9, exactBuffTexture10, exactBuffTexture11, exactBuffTexture12, exactBuffTexture13, exactBuffTexture14, exactBuffTexture15)
+    local matchesArray, matchedBuffsCount = findActiveBuffsViaTexturesImpl(
+            unit,
+            true, --   exactMatchingNotRegex = true
+            false, --       stopAtFirstMatch = false
+            exactBuffTexture1,
+            exactBuffTexture2,
+            exactBuffTexture3,
+            exactBuffTexture4,
+            exactBuffTexture5,
+            exactBuffTexture6,
+            exactBuffTexture7,
+            exactBuffTexture8,
+            exactBuffTexture9,
+            exactBuffTexture10,
+            exactBuffTexture11,
+            exactBuffTexture12,
+            exactBuffTexture13,
+            exactBuffTexture14,
+            exactBuffTexture15
+    );
+
+    return matchesArray, matchedBuffsCount;
+end
+
+-- Reads unit's buffs and returns (matchesArray, matchedBuffsCount) where matchesArray is an array of elements { Index = (number), BuffTexture = (string) }
+-- sorted by descending buff-index (ie: highest buff-index first) or nil if no buffs matched
+--
+-- Note that the regexes are applied in a case-sensitive manner.
+--
+-- Example usage:
+--
+--        local matchedBuffs = findActiveBuffsViaRegexedTextures("player", ".*_Holy_", ".*_Devotion$")
+--        if matchedBuffs ~= nil then
+--            for _, buffInfo in pairs(matchedBuffs) do
+--                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffTexture .. "'")
+--            end
+--        end
+--
+function findActiveBuffsViaRegexedTextures(unit, buffTextureRegex1, buffTextureRegex2, buffTextureRegex3, buffTextureRegex4, buffTextureRegex5, buffTextureRegex6, buffTextureRegex7, buffTextureRegex8, buffTextureRegex9, buffTextureRegex10, buffTextureRegex11, buffTextureRegex12, buffTextureRegex13, buffTextureRegex14, buffTextureRegex15)
+    local matchesArray, matchedBuffsCount = findActiveBuffsViaTexturesImpl(
+            unit,
+            false, -- exactMatchingNotRegex = false
+            false, --      stopAtFirstMatch = false
+            buffTextureRegex1,
+            buffTextureRegex2,
+            buffTextureRegex3,
+            buffTextureRegex4,
+            buffTextureRegex5,
+            buffTextureRegex6,
+            buffTextureRegex7,
+            buffTextureRegex8,
+            buffTextureRegex9,
+            buffTextureRegex10,
+            buffTextureRegex11,
+            buffTextureRegex12,
+            buffTextureRegex13,
+            buffTextureRegex14,
+            buffTextureRegex15
+    );
+
+    return matchesArray, matchedBuffsCount;
+end
+
+-- Reads unit's buffs and returns (matchingBuffIndex, matchingBuffTexture) which is the most recently applied buff (highest index) that matched
+-- any of the given textures - or nil if no buffs matched
+--
+-- Note that the matching is exacting and is applied in a case-insensitive manner
+--
+-- Example usage:
+--
+--        local matchingBuffIndex, matchingBuffTexture = findMostRecentActiveBuffViaTextures("player", "Interface\\Icons\\Spell_Holy_SealOfWisdom", "Interface\\Icons\\Spell_Holy_SealOfLight", "Interface\\Icons\\Spell_Holy_DevotionAura")
+--        if matchingBuffIndex ~= nil then
+--            print("** index=" .. matchingBuffIndex .. ", name='" .. matchingBuffTexture .. "'")
+--        end
+--
+function findMostRecentActiveBuffViaTextures(unit, exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, exactBuff7, exactBuff8, exactBuff9, exactBuff10, exactBuff11, exactBuff12, exactBuff13, exactBuff14, exactBuff15)
+    local matchesArray, matchedBuffsCount = findActiveBuffsViaTexturesImpl(
+            unit,
+            true, --   exactMatchingNotRegex = true
+            true, --        stopAtFirstMatch = true
+            exactBuff1,
+            exactBuff2,
+            exactBuff3,
+            exactBuff4,
+            exactBuff5,
+            exactBuff6,
+            exactBuff7,
+            exactBuff8,
+            exactBuff9,
+            exactBuff10,
+            exactBuff11,
+            exactBuff12,
+            exactBuff13,
+            exactBuff14,
+            exactBuff15
+    );
+
+    if matchedBuffsCount == 0 then
+        return nil, nil;
+    end
+
+    return matchesArray[1].Index, matchesArray[1].BuffTexture;
+end
+
+-- Reads unit's buffs and returns (matchingBuffIndex, matchingBuffTexture) which is the most recently applied buff (highest index) that matched - or nil if no buffs matched
+--
+-- Note that the regexes are applied in a case-sensitive manner.
+--
+-- Example usage:
+--
+--        local matchingBuffIndex, matchingBuffTexture = findMostRecentActiveBuffViaRegexedTextures("player", ".*Spell_Holy_SealOfWisdom$", ".*Spell_Holy_SealOfLight$", ".*Spell_Holy_DevotionAura$")
+--        if matchingBuffIndex ~= nil then
+--            print("** index=" .. matchingBuffIndex .. ", name='" .. matchingBuffTexture .. "'")
+--        end
+--
+function findMostRecentActiveBuffViaRegexedTextures(unit, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
+    local matchesArray, matchedBuffsCount = findActiveBuffsViaTexturesImpl(
+            unit,
+            false, --   exactMatchingNotRegex = false
+            true, --         stopAtFirstMatch = true
+            buffRegex1,
+            buffRegex2,
+            buffRegex3,
+            buffRegex4,
+            buffRegex5,
+            buffRegex6,
+            buffRegex7,
+            buffRegex8,
+            buffRegex9,
+            buffRegex10,
+            buffRegex11,
+            buffRegex12,
+            buffRegex13,
+            buffRegex14,
+            buffRegex15
+    );
+
+    if matchedBuffsCount == 0 then
+        return nil, nil;
+    end
+
+    return matchesArray[1].Index, matchesArray[1].BuffTexture;
+end
+
+-----------------------------------------------
+
+local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+    unit = unit or "player";
+
+    stopAtFirstMatch = stopAtFirstMatch == nil
+            and true
+            or stopAtFirstMatch;
+
+    exactMatchingNotRegex = exactMatchingNotRegex == nil
+            and true
+            or exactMatchingNotRegex;
 
     createTooltipFrame();
 
@@ -508,10 +770,7 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
     matchedBuffs,
     matchedBuffsCount,
     currentBuffIsMatching = cernieUsefulFunctionsTooltip:GetName() .. "TextLeft1", nil, nil, nil, 0, false;
-    for i = 32, 1, -1 do --00 exhaustive search from 32 (most recent buff) down to 1 (oldest buff)
-
-        -- local buffTexturePath = UnitBuff(unit, i); --00 better to avoid this kind of check
-        -- if buffTexturePath ~= -1 and buffTexturePath ~= nil then --00 better to avoid this kind of check
+    for i = 32, 0, -1 do --00 exhaustive search from 32 (most recent buff) down to 1 (oldest buff)
 
         cernieUsefulFunctionsTooltip:SetOwner(WorldFrame, "ANCHOR_NONE"); --   order
         cernieUsefulFunctionsTooltip:ClearLines();  --                         order
@@ -523,7 +782,6 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
         -- print("** i=" .. i .. " -> currentBuffTextbox=" .. _tostring(currentBuffTextbox))
 
         if currentBuffTextbox ~= nil then
-
             currentBuffName = currentBuffTextbox:GetText()
             if currentBuffName ~= nil then
                 -- print("** i=" .. i .. " -> currentBuffName=" .. _tostring(currentBuffName))
@@ -673,7 +931,7 @@ end
 
 -- Reads unit's buffs and returns (matchingBuffIndex, matchingBuffName) which is the most recently applied buff (highest index) that matched - or nil if no buffs matched
 --
--- Note that the matching is exacting and is applied in a case-sensitive manner (this behaviour is different from the legacy isBuffNameActive() which was case-insensitive)
+-- Note that the matching is exacting and is applied in a case-insensitive manner
 --
 -- Example usage:
 --
@@ -685,7 +943,7 @@ end
 function findMostRecentActiveBuff(unit, exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, exactBuff7, exactBuff8, exactBuff9, exactBuff10, exactBuff11, exactBuff12, exactBuff13, exactBuff14, exactBuff15)
     local matchesArray, matchedBuffsCount = findActiveBuffsImpl(
             unit,
-            false, --   exactMatchingNotRegex = true
+            true, --    exactMatchingNotRegex = true
             true, --         stopAtFirstMatch = true
             exactBuff1,
             exactBuff2,
@@ -837,7 +1095,11 @@ end
 
 local _lastCancelPlayerBuffTimestamp = 0;
 
-local function cancelPlayerBuffByNameImpl(useExactMatchingNotRegexes, throttlingTimeInSeconds, buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
+local function cancelPlayerBuffByNamesOrTexturesImpl(useNamesNotTextures, useExactMatchingNotRegexes, throttlingTimeInSeconds, buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
+    useNamesNotTextures = useNamesNotTextures == nil
+            and true
+            or useNamesNotTextures;
+    
     throttlingTimeInSeconds = (throttlingTimeInSeconds == nil or throttlingTimeInSeconds < 0)
             and 1 -- default to 1 seconds
             or throttlingTimeInSeconds;
@@ -847,9 +1109,22 @@ local function cancelPlayerBuffByNameImpl(useExactMatchingNotRegexes, throttling
         return false; -- throttled
     end
 
-    local matchingBuffIndex, matchingBuffName = useExactMatchingNotRegexes
-            and findMostRecentActiveBuff("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
-            or findMostRecentRegexedActiveBuff("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
+    local matchingBuffIndex
+
+    if useNamesNotTextures then -- buff-name-based filtering
+        if useExactMatchingNotRegexes then -- dont turn this into ternary as it will break if the first find returns nil!
+            matchingBuffIndex = findMostRecentActiveBuff("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
+        else
+            matchingBuffIndex = findMostRecentRegexedActiveBuff("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
+        end
+    else -- buff-texture-based filtering
+        if useExactMatchingNotRegexes then -- dont turn this into ternary as it will break if the first find returns nil!
+            matchingBuffIndex = findMostRecentActiveBuffViaTextures("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
+        else
+            matchingBuffIndex = findMostRecentActiveBuffViaRegexedTextures("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
+        end
+    end
+
     if matchingBuffIndex == nil then
         return false;
     end
@@ -865,8 +1140,9 @@ local function cancelPlayerBuffByNameImpl(useExactMatchingNotRegexes, throttling
 end
 
 function CancelPlayerBuffByName(throttlingTimeInSeconds, exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, exactBuff7, exactBuff8, exactBuff9, exactBuff10, exactBuff11, exactBuff12, exactBuff13, exactBuff14, exactBuff15)
-    return cancelPlayerBuffByNameImpl(
-            true, --   useExactMatchingNotRegexes=true
+    return cancelPlayerBuffByNamesOrTexturesImpl(
+            true, --   useNamesNotTextures        = true
+            true, --   useExactMatchingNotRegexes = true
             throttlingTimeInSeconds,
             exactBuff1, exactBuff2, exactBuff3, exactBuff4, exactBuff5, exactBuff6, exactBuff7,
             exactBuff8, exactBuff9, exactBuff10, exactBuff11, exactBuff12, exactBuff13, exactBuff14, exactBuff15
@@ -874,14 +1150,42 @@ function CancelPlayerBuffByName(throttlingTimeInSeconds, exactBuff1, exactBuff2,
 end
 
 function CancelPlayerBuffByRegexedName(throttlingTimeInSeconds, regexedBuff1, regexedBuff2, regexedBuff3, regexedBuff4, regexedBuff5, regexedBuff6, regexedBuff7, regexedBuff8, regexedBuff9, regexedBuff10, regexedBuff11, regexedBuff12, regexedBuff13, regexedBuff14, regexedBuff15)
-    return cancelPlayerBuffByNameImpl(
-            false, --   useExactMatchingNotRegexes=false
+    return cancelPlayerBuffByNamesOrTexturesImpl(
+            true, --    useNamesNotTextures        = true
+            false, --   useExactMatchingNotRegexes = false
             throttlingTimeInSeconds,
             regexedBuff1, regexedBuff2, regexedBuff3, regexedBuff4, regexedBuff5, regexedBuff6, regexedBuff7,
             regexedBuff8, regexedBuff9, regexedBuff10, regexedBuff11, regexedBuff12, regexedBuff13, regexedBuff14, regexedBuff15
     );
 end
 
+----------------------------------------------------------------
+
+-- Cancels the most recently applied buff on the player that matches any of the given texture-strings
+-- (eg: "Interface\\Icons\\Spell_Holy_SealOfWisdom") using case-insensitive full-string-matching
+function CancelPlayerBuffViaTextures(throttlingTimeInSeconds, texture1, texture2, texture3, texture4, texture5, texture6, texture7, texture8, texture9, texture10, texture11, texture12, texture13, texture14, texture15)
+    return cancelPlayerBuffByNamesOrTexturesImpl(
+            false, --   useNamesNotTextures        = false
+            true, --    useExactMatchingNotRegexes = true
+            throttlingTimeInSeconds,
+            texture1, texture2, texture3, texture4, texture5, texture6, texture7,
+            texture8, texture9, texture10, texture11, texture12, texture13, texture14, texture15
+    );
+end
+
+-- Cancels the most recently applied buff on the player that matches any of the given texture-regexes
+-- (eg: "Interface\\Icons\\Spell_Holy_SealOfWisdom") using case-sensitive regex-matching
+function CancelPlayerBuffViaRegexedTextures(throttlingTimeInSeconds, regexedTexture1, regexedTexture2, regexedTexture3, regexedTexture4, regexedTexture5, regexedTexture6, regexedTexture7, regexedTexture8, regexedTexture9, regexedTexture10, regexedTexture11, regexedTexture12, regexedTexture13, regexedTexture14, regexedTexture15)
+    return cancelPlayerBuffByNamesOrTexturesImpl(
+            false, --   useNamesNotTextures        = false
+            false, --   useExactMatchingNotRegexes = false
+            throttlingTimeInSeconds,
+            regexedTexture1, regexedTexture2, regexedTexture3, regexedTexture4, regexedTexture5, regexedTexture6, regexedTexture7,
+            regexedTexture8, regexedTexture9, regexedTexture10, regexedTexture11, regexedTexture12, regexedTexture13, regexedTexture14, regexedTexture15
+    );
+end
+
+----------------------------------------------------------------
 
 local _havePrintedDeprecationWarningFor_isBuffNameActive = false;
 
@@ -1156,13 +1460,14 @@ function isBuffTextureActive(textureRegex)
     local buffIndex = -1;
     local isBuffActive = false;
 
-    for buffId=64, 0, -1 do -- prefer exhaustive reverse search    in twow we need to also scan buffId=0 despite what the docs say about buffId being 1..16
+    for buffId = 32, 0, -1 do
+        -- prefer exhaustive reverse search    in twow we need to also scan buffId=0 despite what the docs say about buffId being 1..16
         buffIndex = g(buffId)
-        if buffIndex ~= -1 and _strfind(GetPlayerBuffTexture(buffIndex) or "", textureRegex) then
+        if buffIndex ~= nil and buffIndex >= 0 and _strfind(GetPlayerBuffTexture(buffIndex) or "", textureRegex) then
             return true, buffId;
         end
     end
-    
+
     return false, -1;
 end
 
@@ -1171,9 +1476,9 @@ function printBuffTextures()
     local g = GetPlayerBuff;
     local buffIndex;
 
-    for buffId=0, 64, 1 do -- in twow we need to also scan buffId=0 despite what the docs say about buffId being 1..16
+    for buffId=0, 32, 1 do -- in twow we need to also scan buffId=0 despite what the docs say about buffId being 1..16
         buffIndex = g(buffId);
-        if buffIndex ~= -1 then -- prefer exhaustive scanning
+        if buffIndex ~= nil and buffIndex >= 0 then -- prefer exhaustive scanning
             local buffName = _strsplit(GetPlayerBuffTexture(buffIndex) or "", "Icons\\");
             DEFAULT_CHAT_FRAME:AddMessage("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(buffName[2] or "nil"));
         end

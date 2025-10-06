@@ -144,7 +144,9 @@ item from its first character. This means that if the name of your desired item 
 
 In order to avoid mismatches with similar named items, it's recommended to enforce exact string-matching like so:
 
-<code>/script ToggleEquipItemSlot("SECONDARYHANDSLOT", "^Talon of Furious Concentration\$", "^Skull of Impending Doom\$");</code>
+```lua
+ToggleEquipItemSlot("SECONDARYHANDSLOT", "^Talon of Furious Concentration$", "^Skull of Impending Doom$")
+```
 
 This will ensure that only the exact item "Talon of Furious Concentration" is matched (and not something like "Talon of Furious Concentration of the Eagle")
 
@@ -240,6 +242,8 @@ end
 
 - CancelPlayerBuffByName(throttlingTimeInSeconds, exactBuff1, exactBuff2, exactBuff3, ...)
 
+Note: You're probably better off using CancelPlayerBuffViaTextures() considering that it has proven more reliable in practice.
+
 Cancels the first matching buff found on the player from the list of specified exact buff names. Note that this function is throttled
 to only allow one buff cancellation every 'throttlingTimeInSeconds' seconds. This is in order to prevent certain nasty bugs that
 can crop up when mass-cancelling buffs (like losing all buffs). There is no way around limitation. Default value for throttlingTimeInSeconds
@@ -249,9 +253,37 @@ is 1 second if you pass nil or negative time.
 
 - CancelPlayerBuffByRegexedName(throttlingTimeInSeconds, regexedBuff1, regexedBuff2, regexedBuff3, ...)
 
+Note: You're probably better off using CancelPlayerBuffViaRegexedTextures() considering that it has proven more reliable in practice.
+
 Like CancelPlayerBuffByName() but uses regex matching instead of exact string matching.
 
 <code>/script CancelPlayerBuffByRegexedName(-1, "^Blessing of .*", "^Divine .*")</code>
+
+- CancelPlayerBuffViaTextures(throttlingTimeInSeconds, texture1, texture2, texture3, ...)
+
+Cancels the first matching buff found on the player from the list of the specified buff-texture-names. Note that this function is
+intentionally being subjected to throttling to only allow one buff cancellation every 'throttlingTimeInSeconds' seconds. This is in order to prevent
+certain nasty bugs that can crop up when mass-cancelling buffs (like losing all buffs). There is no way around limitation. Default value for throttlingTimeInSeconds
+is 1 second if you pass nil or negative time. You have to provide the full path to the texture i.e. "Interface\\Icons\\Spell_Holy_SealOfProtection".
+The string matching is exact but case-insensitive. Returns true if any matching buff was found, false otherwise.
+
+```lua
+local found = CancelPlayerBuffViaTextures(-1, "interface\\icons\\spell_holy_sealofprotection", "interface\\icons\\spell_holy_divineintervention", "interface\\icons\\spell_holy_divineprotection")
+if found then
+    -- taunt the boss back onto you
+end
+```
+
+- CancelPlayerBuffViaRegexedTextures(throttlingTimeInSeconds, regexedTexture1, regexedTexture2, regexedTexture3, ...)
+
+Like CancelPlayerBuffViaTextures() but uses regex case-sensitive-matching instead of exact string matching.
+
+```lua
+local found = CancelPlayerBuffViaRegexedTextures(-1, "[Ss]pell_[Hh]oly_[Rr]estoration$", "[Ss]pell_[Hh]oly_[Dd]ivine[Ii]ntervention$", "[Ss]pell_[Hh]oly_[Ss]eal[Oo]f[Pp]rotection$")
+if found then
+    -- taunt the boss back onto you
+end
+```
 
 - **[<u>DEPRECATED: Use the findRegexedActiveBuffs() instead</u>]** isBuffNameActive(buff, unit)
 Function to query a buff name on the specified unit. Returns true/false based on if buff name is found, the index of the buff found, and the total 
@@ -318,7 +350,9 @@ For example, the following macro command:
 
 You may also chain multiple items together like so - the first item found will be used:
 
-<code>/script UseItemInBag(" Grenade\$") or UseItemInBag(" Dynamite$") or UseItemInBag(" Bomb\$")</code>
+```lua
+local success = UseItemInBag(" Grenade$") or UseItemInBag(" Dynamite$") or UseItemInBag(" Bomb$")
+```
 
 Better yet, if you have supermacro you can write a dedicated function that is more readable:
 
@@ -420,7 +454,14 @@ item from its very first character. This means that if the name of your desired 
 
 In order to avoid mismatches with similar named items, it's recommended to enforce exact string-matching like so:
 
-<code>/script local found, bag, slot = isInBag("^Major Healing Potion\$") if(found) then UseContainerItem(bag, slot, 1) else DEFAULT_CHAT_FRAME:AddMessage("Major Healing Potion not found!") end;</code>
+```lua
+local found, bag, slot = isInBag("^Major Healing Potion$")
+if (found) then
+    UseContainerItem(bag, slot, 1)
+else
+    DEFAULT_CHAT_FRAME:AddMessage("Major Healing Potion not found!")
+end
+```
 
 This will ensure that only the exact item "Major Healing Potion" is matched and not something like "Major Healing Potion of Foobar".
 
