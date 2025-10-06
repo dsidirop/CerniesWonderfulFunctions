@@ -1143,7 +1143,7 @@ function isBuffTextureActive(texture)
             break;
         end
         
-        if _strfind(GetPlayerBuffTexture(buffIndex), texture) then
+        if _strfind(GetPlayerBuffTexture(buffIndex) or "", texture) then
             return true, buffId;
         end
     end
@@ -1162,7 +1162,7 @@ function printBuffTextures()
             break;
         end
 
-        local buffName = _strsplit(GetPlayerBuffTexture(buffIndex), "Icons\\");
+        local buffName = _strsplit(GetPlayerBuffTexture(buffIndex) or "", "Icons\\");
         DEFAULT_CHAT_FRAME:AddMessage("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(buffName[2] or "nil"));
     end
 end
