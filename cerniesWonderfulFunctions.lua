@@ -1260,6 +1260,14 @@ end
 
 ----------------------------------------------------------------
 
+local _edwardTheOddBuffTextureFilepath = "interface\\icons\\spell_holy_searinglight";
+
+function isEdwardTheOddBuffProcced()
+    return findMostRecentActiveBuffViaTextures("player", _edwardTheOddBuffTextureFilepath) ~= nil;
+end
+
+----------------------------------------------------------------
+
 local _havePrintedDeprecationWarningFor_isBuffNameActive = false;
 
 --[DEPRECATED: Use findRegexedActiveBuffs() instead] Reads unit's buffs and returns isBuffActive, buffIndex, numBuffs
@@ -1552,8 +1560,9 @@ function printBuffTextures()
     for buffId=0, 32, 1 do -- in twow we need to also scan buffId=0 despite what the docs say about buffId being 1..16
         buffIndex = g(buffId);
         if buffIndex ~= nil and buffIndex >= 0 then -- prefer exhaustive scanning
-            local buffName = _strsplit(GetPlayerBuffTexture(buffIndex) or "", "Icons\\");
-            DEFAULT_CHAT_FRAME:AddMessage("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(buffName[2] or "nil"));
+            local fullTexturePath = GetPlayerBuffTexture(buffIndex) or "";
+            local textureFileName = _strsplit(fullTexturePath, "Icons\\")[2] or "nil";
+            DEFAULT_CHAT_FRAME:AddMessage("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(textureFileName) .. ", fullPath=" .. _tostring(fullTexturePath));
         end
     end
 end
