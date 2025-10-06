@@ -285,6 +285,45 @@ if found then
 end
 ```
 
+- CancelPaladinImmunities(throttlingTimeInSeconds)
+
+Cancels any paladin divine shield, divine intervention, divine protection or blessing/hand of protection buffs. Essentially, this is a
+handy out-of-the-box shortcut to CancelPlayerBuffViaTextures(). Note that this function is throttled to only allow one buff cancellation every
+'throttlingTimeInSeconds' seconds. This is in order to prevent certain nasty bugs that can crop up when mass-cancelling buffs (like losing all buffs).
+There is no way around limitation. Default value for throttlingTimeInSeconds is 1 second if you pass nil or negative time.
+
+```lua
+local foundAndCancelled = CancelPaladinImmunities()
+if foundAndCancelled then
+    -- taunt the boss back onto you
+end
+```
+
+- CancelPaladinRighteousFury(throttlingTimeInSeconds)
+
+Cancels any paladin righteous fury buff. Essentially, this is a handy out-of-the-box shortcut to CancelPlayerBuffViaTextures(). Note that this function is throttled
+to only allow one buff cancellation every 'throttlingTimeInSeconds' seconds. This is in order to prevent certain nasty bugs that can crop up when mass-cancelling buffs
+(like losing all buffs). There is no way around limitation. Default value for throttlingTimeInSeconds is 1 second if you pass nil or negative time.
+
+```lua
+local foundAndCancelled = CancelPaladinRighteousFury()
+if foundAndCancelled then
+    -- do something now that righteous fury is off
+end
+```
+
+- EnsurePaladinRighteousFuryIsOn()
+
+Ensures that the paladin has righteous fury buff active. If not, it will cast righteous fury. Returns true if Righteous Fury got turned on just now,
+false if it was already on.
+
+```lua
+local turnedOnNow = EnsurePaladinRighteousFuryIsOn()
+if turnedOnNow then
+    -- do something now that righteous fury just got turned on
+end
+```
+
 - **[<u>DEPRECATED: Use the findRegexedActiveBuffs() instead</u>]** isBuffNameActive(buff, unit)
 Function to query a buff name on the specified unit. Returns true/false based on if buff name is found, the index of the buff found, and the total 
 number of buffs the unit has. Unit parameter is based on API unit (ie "player" or "target"). Useful in saving space in custom macros for 

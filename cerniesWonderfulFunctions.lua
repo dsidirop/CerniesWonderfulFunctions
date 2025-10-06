@@ -1187,6 +1187,79 @@ end
 
 ----------------------------------------------------------------
 
+local _paladinImmunityTextureFilepaths = {
+    "interface\\icons\\spell_holy_restoration", --        Divine Protection
+    "interface\\icons\\spell_holy_divineintervention", -- Divine Shield
+    "interface\\icons\\spell_holy_sealofprotection", --   Blessing/Hand of Protection
+    "interface\\icons\\spell_nature_timestop" --          Divine Intervention    
+};
+
+local _paladinImmunityTextureFilenamesRegexes = {
+    "[Ss]pell_[Hh]oly_[Rr]estoration$", --               Divine Protection
+    "[Ss]pell_[Hh]oly_[Dd]ivine[Ii]ntervention$", --     Divine Shield
+    "[Ss]pell_[Hh]oly_[Ss]eal[Oo]f[Pp]rotection$", --    Blessing/Hand of Protection
+    "[Ss]pell_[Nn]ature_[Tt]imestop$" --                 Divine Intervention
+};
+
+-- Cancels common paladin immunities (Divine Protection, Divine Intervention, Blessing of Protection, etc)
+-- returns true if any of the associated buffs was found, false otherwise
+function CancelPaladinImmunities(throttlingTimeInSeconds)
+    -- @formatter:off
+    return CancelPlayerBuffViaTextures( -- fast path
+                  throttlingTimeInSeconds,
+                  _paladinImmunityTextureFilepaths[1],
+                  _paladinImmunityTextureFilepaths[2],
+                  _paladinImmunityTextureFilepaths[3],
+                  _paladinImmunityTextureFilepaths[4],
+                  _paladinImmunityTextureFilepaths[5],
+                  _paladinImmunityTextureFilepaths[6],
+                  _paladinImmunityTextureFilepaths[7],
+                  _paladinImmunityTextureFilepaths[8],
+                  _paladinImmunityTextureFilepaths[9],
+                  _paladinImmunityTextureFilepaths[10]
+           )
+           or
+           CancelPlayerBuffViaRegexedTextures( -- fallback just in case some wowclients have different texture-paths
+                  throttlingTimeInSeconds,
+                  _paladinImmunityTextureFilenamesRegexes[1],
+                  _paladinImmunityTextureFilenamesRegexes[2],
+                  _paladinImmunityTextureFilenamesRegexes[3],
+                  _paladinImmunityTextureFilenamesRegexes[4],
+                  _paladinImmunityTextureFilenamesRegexes[5],
+                  _paladinImmunityTextureFilenamesRegexes[6],
+                  _paladinImmunityTextureFilenamesRegexes[7],
+                  _paladinImmunityTextureFilenamesRegexes[8],
+                  _paladinImmunityTextureFilenamesRegexes[9],
+                  _paladinImmunityTextureFilenamesRegexes[10]
+           )
+    -- @formatter:off
+end
+
+local _paladinRighteousFuryTextureFilepath = "interface\\icons\\spell_holy_sealoffury";
+local _paladinRighteousFuryTextureFilenameRegex = "[Ss]pell_[Hh]oly_[Ss]eal[Oo]f[Ff]ury$";
+
+-- Cancels paladin righteous fury buff
+function CancelPaladinRighteousFury(throttlingTimeInSeconds)
+    -- @formatter:off
+    return CancelPlayerBuffViaTextures(throttlingTimeInSeconds, _paladinRighteousFuryTextureFilepath) -- fast path
+           or
+           CancelPlayerBuffViaRegexedTextures(throttlingTimeInSeconds, _paladinRighteousFuryTextureFilenameRegex) -- fallback just in case some wowclients have different texture-paths
+    -- @formatter:off
+end
+
+-- Ensures paladin righteous fury buff is active, returns true if it was off and got cast, false if it was already on
+function EnsurePaladinRighteousFuryIsOn()
+    local isAlreadyOn = findMostRecentActiveBuffViaRegexedTextures("player", _paladinRighteousFuryTextureFilenameRegex) ~= nil;
+    if isAlreadyOn then
+        return false;    
+    end
+
+    CastSpellByName("Righteous Fury", true);
+    return true;
+end
+
+----------------------------------------------------------------
+
 local _havePrintedDeprecationWarningFor_isBuffNameActive = false;
 
 --[DEPRECATED: Use findRegexedActiveBuffs() instead] Reads unit's buffs and returns isBuffActive, buffIndex, numBuffs
