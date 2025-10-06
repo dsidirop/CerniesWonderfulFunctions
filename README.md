@@ -238,6 +238,21 @@ if matchingBuffIndex ~= nil then
 end
 ```
 
+- CancelPlayerBuffByName(throttlingTimeInSeconds, exactBuff1, exactBuff2, exactBuff3, ...)
+
+Cancels the first matching buff found on the player from the list of specified exact buff names. Note that this function is throttled
+to only allow one buff cancellation every 'throttlingTimeInSeconds' seconds. This is in order to prevent certain nasty bugs that
+can crop up when mass-cancelling buffs (like losing all buffs). There is no way around limitation. Default value for throttlingTimeInSeconds
+is 1 second if you pass nil or negative time.
+
+<code>/script CancelPlayerBuffByName(-1, "Blessing of Protection", "Divine Shield", "Divine Protection")</code>
+
+- CancelPlayerBuffByRegexedName(throttlingTimeInSeconds, regexedBuff1, regexedBuff2, regexedBuff3, ...)
+
+Like CancelPlayerBuffByName() but uses regex matching instead of exact string matching.
+
+<code>/script CancelPlayerBuffByRegexedName(-1, "^Blessing of .*", "^Divine .*")</code>
+
 - **[<u>DEPRECATED: Use the findRegexedActiveBuffs() instead</u>]** isBuffNameActive(buff, unit)
 Function to query a buff name on the specified unit. Returns true/false based on if buff name is found, the index of the buff found, and the total 
 number of buffs the unit has. Unit parameter is based on API unit (ie "player" or "target"). Useful in saving space in custom macros for 
