@@ -528,6 +528,25 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
             if currentBuffName ~= nil then
                 -- print("** i=" .. i .. " -> currentBuffName=" .. _tostring(currentBuffName))
 
+                if exactMatchingNotRegex then
+                    currentBuffName = _strlower(currentBuffName);
+                    buff1 = buff1 ~= nil and _strlower(buff1) or nil; -- prepare for case-insensitive comparison
+                    buff2 = buff2 ~= nil and _strlower(buff2) or nil;
+                    buff3 = buff3 ~= nil and _strlower(buff3) or nil;
+                    buff4 = buff4 ~= nil and _strlower(buff4) or nil;
+                    buff5 = buff5 ~= nil and _strlower(buff5) or nil;
+                    buff6 = buff6 ~= nil and _strlower(buff6) or nil;
+                    buff7 = buff7 ~= nil and _strlower(buff7) or nil;
+                    buff8 = buff8 ~= nil and _strlower(buff8) or nil;
+                    buff9 = buff9 ~= nil and _strlower(buff9) or nil;
+                    buff10 = buff10 ~= nil and _strlower(buff10) or nil;
+                    buff11 = buff11 ~= nil and _strlower(buff11) or nil;
+                    buff12 = buff12 ~= nil and _strlower(buff12) or nil;
+                    buff13 = buff13 ~= nil and _strlower(buff13) or nil;
+                    buff14 = buff14 ~= nil and _strlower(buff14) or nil;
+                    buff15 = buff15 ~= nil and _strlower(buff15) or nil;
+                end
+
                 currentBuffIsMatching = --@formatter:off
                            (  buff1 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff1 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff1))) )
                         or (  buff2 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff2 ) or (not exactMatchingNotRegex and _strfind(currentBuffName,  buff2))) )
@@ -577,7 +596,7 @@ end
 -- Reads unit's buffs and returns (matchesArray, matchedBuffsCount) where matchesArray is an array of elements { Index = (number), BuffName = (string) }
 -- sorted by descending buff-index (ie: highest buff-index first) or nil if no buffs matched
 --
--- Note that string-matching is applied in a case-sensitive manner (this behaviour is different from the legacy isBuffNameActive() which was case-insensitive)
+-- Note that string-matching is applied in a case-insensitive manner.
 --
 -- Example usage:
 --
