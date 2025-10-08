@@ -25,11 +25,11 @@ function _strsplit(self, delimiter)
 end
 
 function CerniesWonderfulFunctions_OnLoad()
-    this:RegisterEvent("PLAYER_LOGIN")
+    -- this:RegisterEvent("PLAYER_LOGIN")
     this:RegisterEvent("PLAYER_REGEN_DISABLED")
     this:RegisterEvent("PLAYER_REGEN_ENABLED")
-    local msg = "Cernie's Wonderful Functions (CWF) loaded. Please see the readme for instructions.";
-    DEFAULT_CHAT_FRAME:AddMessage(msg);
+
+    DEFAULT_CHAT_FRAME:AddMessage("Cernie's Wonderful Functions (CWF) loaded. Please see the readme for instructions.");
 end
 
 function CerniesWonderfulFunctions_OnEvent(event)
@@ -509,7 +509,7 @@ local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopA
     matchedBuffsCount,
     currentBuffTexture,
     currentBuffIsMatching = -1, nil, 0, nil, false;
-    for i = 32, 0, -1 do --00 exhaustive search from 32 (most recent buff) down to 1 (oldest buff)
+    for i = 32, 0, -1 do --00 exhaustive search from 32 (most recent buff) down to 0 (oldest buff)
 
         -- print("*****")
 
@@ -770,7 +770,7 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
     matchedBuffs,
     matchedBuffsCount,
     currentBuffIsMatching = cernieUsefulFunctionsTooltip:GetName() .. "TextLeft1", nil, nil, nil, 0, false;
-    for i = 32, 0, -1 do --00 exhaustive search from 32 (most recent buff) down to 1 (oldest buff)
+    for i = 32, 0, -1 do --00 exhaustive search from 32 (most recent buff) down to 0 (oldest buff)
 
         cernieUsefulFunctionsTooltip:SetOwner(WorldFrame, "ANCHOR_NONE"); --   order
         cernieUsefulFunctionsTooltip:ClearLines();  --                         order
