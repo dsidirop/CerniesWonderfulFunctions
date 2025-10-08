@@ -10,6 +10,11 @@ local _strlower = string.lower
 local _getn = table.getn
 local _tblinsert = table.insert
 
+local DRUID__FERAL_CHARGE__SPELLBOOK_INDEX;
+local DRUID__BEST_BEAR_FORM__SPELLBOOK_INDEX;
+
+local PALADIN__RIGHTEOUS_FURY__SPELLBOOK_INDEX;
+
 --Function to split a string
 function _strsplit(self, delimiter)
     local result = { }
@@ -25,18 +30,25 @@ function _strsplit(self, delimiter)
 end
 
 function CerniesWonderfulFunctions_OnLoad()
-    -- this:RegisterEvent("PLAYER_LOGIN")
-    this:RegisterEvent("PLAYER_REGEN_DISABLED")
+    this:RegisterEvent("SPELL_UPDATE")
     this:RegisterEvent("PLAYER_REGEN_ENABLED")
-
+    this:RegisterEvent("PLAYER_REGEN_DISABLED")
+    
     DEFAULT_CHAT_FRAME:AddMessage("Cernie's Wonderful Functions (CWF) loaded. Please see the readme for instructions.");
 end
 
 function CerniesWonderfulFunctions_OnEvent(event)
-    if (event == "PLAYER_REGEN_DISABLED") then
+    if event == "PLAYER_REGEN_DISABLED" then
         CWF_isPlayerInCombat = true;
-    elseif (event == "PLAYER_REGEN_ENABLED") then
+
+    elseif event == "PLAYER_REGEN_ENABLED" then
         CWF_isPlayerInCombat = false;
+
+    elseif event == "SPELL_UPDATE" then
+        -- reset these so they get looked up again next time they are used
+        DRUID__FERAL_CHARGE__SPELLBOOK_INDEX = nil;
+        DRUID__BEST_BEAR_FORM__SPELLBOOK_INDEX = nil;
+        PALADIN__RIGHTEOUS_FURY__SPELLBOOK_INDEX = nil;
     end
 end
 
@@ -117,6 +129,45 @@ function UseBGBandage(
 
     DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!");
 end
+
+-- returns id of a spell from player's spellbook
+function getSpellId(targetSpellName) -- todo   deprecate this in favor of getSpellbookIndexBySpellName()
+    local i = 1
+    while true do
+        local spellName, _ = GetSpellName(i, BOOKTYPE_SPELL)
+        if not spellName then
+            break
+        end
+
+        if spellName == targetSpellName then
+            return i;
+        end
+
+        i = i + 1;
+    end
+
+    return nil;
+end
+
+-- returns id of a spell from player's spellbook based on the given texture-regex (case sensitive)
+-- very useful for detecting spells dynamically even on non-english clients!
+ function getSpellbookIndexByRegexedTextureFilePath(targetSpellNameTextureRegex) -- todo test this out!
+     local i = 1
+     while true do
+         local texturePath = GetSpellTexture(i)
+         if not texturePath then
+             break
+         end
+
+         if _strfind(texturePath, targetSpellNameTextureRegex) then
+             return i;
+         end
+
+         i = i + 1;
+     end
+
+     return nil;
+ end
 
 --One action for using Battleground specific biscuits instead of regular food/water
 function UseBGBiscuit(wg, ab, av)
@@ -354,6 +405,7 @@ function MageDPM(spell1, spell2)
 end
 
 --Equip Fishing pole or begin fishing if a pole is equipped, holding down any modifier (ctrl, alt, shift) will attach the best available lure
+local FISHING_SPELLBOOK_INDEX = 3598;
 function Fish(pole)
     local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"));
     local mainHandName = getItemName(mainHandLink);
@@ -378,7 +430,7 @@ function Fish(pole)
             end
         end
     elseif (mainHandName ~= nil and mainHandName == pole) then
-        CastSpellByName("Fishing");
+        CastSpellByName(FISHING_SPELLBOOK_INDEX, true);
     end
 end
 
@@ -446,18 +498,30 @@ function CancelShapeshift()
     end
 end
 
---Druid macro for shifting into bear form and using Feral Charge
+-- druid macro for shifting into bear-form and using feral-charge
+local FERAL_CHARGE_TEXTURE_PATH_REGEX = "[Aa][Bb][Ii][Ll][Ii][Tt][Yy]_[Dd][Rr][Uu][Ii][Dd]_[Ff][Ee][Rr][Aa][Ll].?[C][Hh][Aa][Rr][Gg][Ee]$"; -- ability_druid_feralcharge
+local ANY_BEAR_FORM_TEXTURE_PATH_REGEX = "[Aa][Bb][Ii][Ll][Ii][Tt][Yy]_[Rr][Aa][Cc][Ii][Aa][Ll]_[Bb][Ee][Aa][Rr]?.[Ff][Oo][Rr][Mm]$"; -- ability_racial_bearform    matches both "bear form" and "dire bear form"
 function FeralCharge()
-    local currentForm = getShapeshiftForm();
+    if DRUID__FERAL_CHARGE__SPELLBOOK_INDEX == nil then
+        DRUID__FERAL_CHARGE__SPELLBOOK_INDEX = getSpellbookIndexByRegexedTextureFilePath(FERAL_CHARGE_TEXTURE_PATH_REGEX) or -1; -- todo  check if this approach indeed works with spell-book-index-ids
+    end
 
-    if (currentForm == 1) then
-        CastSpellByName("Feral Charge");
-    else
-        if (getSpellId("Dire Bear Form") ~= nil) then
-            Shapeshift("Dire Bear Form", false, true);
-        else
-            Shapeshift("Bear Form", false, true);
-        end
+    if DRUID__BEST_BEAR_FORM__SPELLBOOK_INDEX == nil then
+        DRUID__BEST_BEAR_FORM__SPELLBOOK_INDEX = getSpellbookIndexByRegexedTextureFilePath(ANY_BEAR_FORM_TEXTURE_PATH_REGEX) or -1; -- both "bear form" and "dire bear form" have the exact same texture
+    end
+
+    if DRUID__FERAL_CHARGE__SPELLBOOK_INDEX < 0 or DRUID__BEST_BEAR_FORM__SPELLBOOK_INDEX < 0 then
+        return; -- no point continuing if we the druid lacks bear-form or the feral-charge spell
+    end
+
+    if getShapeshiftForm() == 1 then -- todo introduce a constant for "bear form" instead of hardcoding "1"
+        CastSpellByName(DRUID__FERAL_CHARGE__SPELLBOOK_INDEX);
+        return;
+    end
+
+    if DRUID__BEST_BEAR_FORM__SPELLBOOK_INDEX >= 0 then
+        -- lowbies might not even have bear form
+        Shapeshift(DRUID__BEST_BEAR_FORM__SPELLBOOK_INDEX, false, true);
     end
 end
 
@@ -1235,35 +1299,40 @@ function CancelPaladinImmunities(throttlingTimeInSeconds)
     -- @formatter:off
 end
 
-local _paladinRighteousFuryTextureFilepath = "interface\\icons\\spell_holy_sealoffury";
-local _paladinRighteousFuryTextureFilenameRegex = "[Ss]pell_[Hh]oly_[Ss]eal[Oo]f[Ff]ury$";
+local PALADIN__RIGHTEOUS_FURY__TEXTURE_FILEPATH = "interface\\icons\\spell_holy_sealoffury";
+local PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX = "[Ss][Pp][Ee][Ll][Ll].*[Hh][Oo][Ll][Yy].*[Ss][Ee][Aa][Ll][Oo][Ff][Ff][Uu][Rr][Yy]$";
 
 -- Cancels paladin righteous fury buff
 function CancelPaladinRighteousFury(throttlingTimeInSeconds)
     -- @formatter:off
-    return CancelPlayerBuffViaTextures(throttlingTimeInSeconds, _paladinRighteousFuryTextureFilepath) -- fast path
+    return CancelPlayerBuffViaTextures(throttlingTimeInSeconds, PALADIN__RIGHTEOUS_FURY__TEXTURE_FILEPATH) -- fast path
            or
-           CancelPlayerBuffViaRegexedTextures(throttlingTimeInSeconds, _paladinRighteousFuryTextureFilenameRegex) -- fallback just in case some wowclients have different texture-paths
+           CancelPlayerBuffViaRegexedTextures(throttlingTimeInSeconds, PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX) -- fallback just in case some wowclients have different texture-paths
     -- @formatter:off
 end
 
 -- Ensures paladin righteous fury buff is active, returns true if it was off and got cast, false if it was already on
+-- local PALADIN__RIGHTEOUS_FURY__SPELLBOOK_INDEX = 1459; -- todo
 function EnsurePaladinRighteousFuryIsOn()
-    local isAlreadyOn = findMostRecentActiveBuffViaRegexedTextures("player", _paladinRighteousFuryTextureFilenameRegex) ~= nil;
+    local isAlreadyOn = findMostRecentActiveBuffViaRegexedTextures("player", PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX) ~= nil;
     if isAlreadyOn then
         return false;    
     end
 
-    CastSpellByName("Righteous Fury", true);
+    if PALADIN__RIGHTEOUS_FURY__SPELLBOOK_INDEX == nil then
+        PALADIN__RIGHTEOUS_FURY__SPELLBOOK_INDEX = getSpellbookIndexByRegexedTextureFilePath(PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX) or -1;
+    end
+
+    CastSpellByName(PALADIN__RIGHTEOUS_FURY__SPELLBOOK_INDEX, true); -- todo   test this out
     return true;
 end
 
 ----------------------------------------------------------------
 
-local _edwardTheOddBuffTextureFilepath = "interface\\icons\\spell_holy_searinglight";
+local WEAPON__EDWARD_THE_ODD__BUFF_PROC__TEXTURE_FILEPATH = "interface\\icons\\spell_holy_searinglight";
 
 function isEdwardTheOddBuffProcced()
-    return findMostRecentActiveBuffViaTextures("player", _edwardTheOddBuffTextureFilepath) ~= nil;
+    return findMostRecentActiveBuffViaTextures("player", WEAPON__EDWARD_THE_ODD__BUFF_PROC__TEXTURE_FILEPATH) ~= nil;
 end
 
 ----------------------------------------------------------------
@@ -1431,22 +1500,6 @@ function UseItemInBag(itemNameRegex, useOnSelf)
     return true
 end
 
---returns id of a spell from player's spellbook
-function getSpellId(spell)
-    local i = 1
-    while true do
-        local spellName, _ = GetSpellName(i, BOOKTYPE_SPELL)
-        if not spellName then
-            do
-                break
-            end
-        end
-        if spellName == spell then
-            return i;
-        end
-        i = i + 1
-    end
-end
 
 -- Function to determine if spell or ability is on Cooldown, returns true or false. (For experimental mode that checks the cd based on your latency: uncomment the commented lines, and comment out the last return line)
 function isSpellOnCd(spell)
@@ -1519,8 +1572,8 @@ function isInBag(itemNameRegex)
     return found, itemBag, itemSlot;
 end
 
-local bracketEnd = "]";
-local bracketStart = "|h";
+local BRACKET_END = "]";
+local BRACKET_START = "|h";
 
 --Helper function to get an item name given an item link
 function getItemName(itemLink)
@@ -1530,8 +1583,8 @@ function getItemName(itemLink)
 
     return _strsub(
             itemLink,
-            _strfind(itemLink, bracketStart, 1, true) + 3,
-            _strfind(itemLink, bracketEnd, 1, true) - 1
+            _strfind(itemLink, BRACKET_START, 1, true) + 3,
+            _strfind(itemLink, BRACKET_END, 1, true) - 1
     );
 end
 
