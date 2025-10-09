@@ -24,7 +24,6 @@ local _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths
 
 local ROYAL_BLUE = { 0.39, 0.584, 0.929 }; -- Cornflower blue (#6495ED)
 local function _print(msg, r, g, b, id)
-    -- must be declared after _namedColors!
     DEFAULT_CHAT_FRAME:AddMessage(
             "[CWF] " .. msg,
             r ~= nil and r or ROYAL_BLUE[1],
