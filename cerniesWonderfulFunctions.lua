@@ -4,14 +4,42 @@ CWF_isPlayerInCombat = false;
 local _tostring = tostring
 
 local _strsub = string.sub
+local _strgsub = string.gsub
 local _strfind = string.find
 local _strlower = string.lower
 
 local _getn = table.getn
+local _pairs = pairs
+local _ipairs = ipairs
+local _tblsort = table.sort
 local _tblinsert = table.insert
 
---Function to split a string
-function _strsplit(self, delimiter)
+local _startFishing_localizedSpellName; -- cached localized spell names
+local _druid__feralCharge__localizedSpellName;
+local _druid__bestBearForm__localizedSpellName;
+local _paladin__righteousFury__localizedSpellName;
+
+local _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames
+local _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths
+
+local ROYAL_BLUE = { 0.39, 0.584, 0.929 }; -- Cornflower blue (#6495ED)
+local function _print(msg, r, g, b, id)
+    -- must be declared after _namedColors!
+    DEFAULT_CHAT_FRAME:AddMessage(
+            "[CWF] " .. msg,
+            r ~= nil and r or ROYAL_BLUE[1],
+            g ~= nil and g or ROYAL_BLUE[2],
+            b ~= nil and b or ROYAL_BLUE[3],
+            id
+    )
+end
+
+
+local function _strtrim(input)
+    return _strgsub(input or "", "^%s*(.-)%s*$", "%1")
+end
+
+local function _strsplit(self, delimiter)
     local result = { }
     local from = 1
     local delim_from, delim_to = _strfind(self, delimiter, from)
@@ -25,18 +53,29 @@ function _strsplit(self, delimiter)
 end
 
 function CerniesWonderfulFunctions_OnLoad()
-    -- this:RegisterEvent("PLAYER_LOGIN")
-    this:RegisterEvent("PLAYER_REGEN_DISABLED")
+    this:RegisterEvent("SPELL_UPDATE")
     this:RegisterEvent("PLAYER_REGEN_ENABLED")
-
-    DEFAULT_CHAT_FRAME:AddMessage("Cernie's Wonderful Functions (CWF) loaded. Please see the readme for instructions.");
+    this:RegisterEvent("PLAYER_REGEN_DISABLED")
+    
+    _print("Addon loaded. Please see the readme for instructions.");
 end
 
 function CerniesWonderfulFunctions_OnEvent(event)
-    if (event == "PLAYER_REGEN_DISABLED") then
+    if event == "PLAYER_REGEN_DISABLED" then
         CWF_isPlayerInCombat = true;
-    elseif (event == "PLAYER_REGEN_ENABLED") then
+
+    elseif event == "PLAYER_REGEN_ENABLED" then
         CWF_isPlayerInCombat = false;
+
+    elseif event == "SPELL_UPDATE" then
+        -- reset these so they get looked up again next time they are used
+        _startFishing_localizedSpellName = nil;
+        _druid__feralCharge__localizedSpellName = nil;
+        _druid__bestBearForm__localizedSpellName = nil;
+        _paladin__righteousFury__localizedSpellName = nil;
+
+        _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths = nil;
+        _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames = nil;
     end
 end
 
@@ -115,7 +154,140 @@ function UseBGBandage(
         end
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
+end
+
+-- returns spell-book-index-number of a spell from player's spellbook   bare in mind that the
+-- spell-book-index-number is not the same as the spell-id and cannot be used interchangeably
+-- so it cannot be passed to CastSpellByName() as-is
+function getSpellId(targetSpellName)
+    local i = 1
+    while true do
+        local spellName, _ = GetSpellName(i, BOOKTYPE_SPELL)
+        if not spellName then
+            break
+        end
+
+        if spellName == targetSpellName then
+            return i;
+        end
+
+        i = i + 1;
+    end
+
+    return nil;
+end
+
+local function getAllSpellsOfCurrentPlayerOnce()
+    if _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths then
+        return _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths, _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames
+    end
+
+    _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths = {}
+
+    local numTabs = GetNumSpellTabs()
+    for tab = 1, numTabs do
+        local _, _, offset, numSpells = GetSpellTabInfo(tab)
+        for spellIndexInSpellbook = offset + 1, offset + numSpells do
+            local localizedSpellName, spellRank = GetSpellName(spellIndexInSpellbook, BOOKTYPE_SPELL)
+
+            localizedSpellName = _strtrim(localizedSpellName or "") -- dont lowercase this one
+            if localizedSpellName ~= "" then
+                local spellTexture = GetSpellTexture(spellIndexInSpellbook, BOOKTYPE_SPELL)
+
+                spellTexture = _strlower(_strtrim(spellTexture)) -- for case-insensitive comparison
+                if spellTexture ~= "" then
+                    if not _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths[spellTexture] then
+                        _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths[spellTexture] = {}
+                    end
+
+                    _tblinsert(_allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths[spellTexture], {
+                        localizedSpellName = localizedSpellName, -- localized spell name
+
+                        rank = spellRank, -- racial traits that have a single rank set this to "Racial" and professions to "Specialization/Artisan/etc"
+                        texture = spellTexture,
+                        spellIndex = spellIndexInSpellbook --00 not to be confused with spellId which is different
+
+                        -- spellId = ...   unfortunately in vanilla wow there is no way to get the numeric-spell-id :(
+                    })
+                end    
+            end
+        end
+    end
+
+    -- now sort spell-ranks in descending order (highest -> lowest) and then create a side-map indexed by spell-name too
+    _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames = {}
+    for texture, spells in _pairs(_allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths) do
+        _tblsort(spells, function(a, b)
+            if a.rank == b.rank then
+                -- keep this check first to account for nils on both sides   shouldnt happen but just in case
+                return false
+            end
+
+            if a.rank == nil then
+                -- shouldnt happen but just in case
+                return true
+            end
+
+            if b.rank == nil then
+                -- shouldnt happen but just in case
+                return false
+            end
+            
+            return a.rank > b.rank
+        end)
+
+        _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames[spells[1].localizedSpellName] = spells
+    end
+
+    return _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths, _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames
+    
+    --00  be careful not to confuse the spell-index number with the numeric-spell-id of the spell they are not the same
+    --    and in fact in vanilla wow we cannot automatically get the numeric-spell-id of the spell in any way
+end
+
+
+function printAllSpellsOfCurrentPlayer()
+    local _, spellsIndexedBy_localizedSpellNames = getAllSpellsOfCurrentPlayerOnce();
+
+    _print("All spells of current player (total " .. _tostring(_getn(spellsIndexedBy_localizedSpellNames)) .. " distinct spell names):");
+
+    for localizedSpellName, spells in _pairs(spellsIndexedBy_localizedSpellNames) do
+        DEFAULT_CHAT_FRAME:AddMessage("** localizedSpellName='" .. localizedSpellName .. "'")
+        for _, spell in _ipairs(spells) do
+            DEFAULT_CHAT_FRAME:AddMessage(
+                    "**** "
+                            .. "rank='" .. _tostring(spell.rank) .. "', "
+                            .. "texture='" .. spell.texture .. "', "
+                            .. "spellIndex=" .. spell.spellIndex
+            )
+        end
+    end
+end
+
+-- returns id of a spell from player's spellbook based on the given texture-regex
+-- (case sensitive) very useful for detecting spells dynamically even on non-english clients!
+function tryGetLocalizedSpellNameByExactTextureFilePath(fullTextureFilePath)
+    local allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths = getAllSpellsOfCurrentPlayerOnce();
+
+    local allSpellRanks = allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths[_strlower(fullTextureFilePath)];
+    if not allSpellRanks or not allSpellRanks[1] then
+        return nil;
+    end
+
+    return allSpellRanks[1].localizedSpellName;
+end
+
+function tryGetLocalizedSpellNameByRegexedTextureFilePath(regexedFullTextureFilePath)
+    local allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths = getAllSpellsOfCurrentPlayerOnce();
+
+    for textureFilePath, allSpellRanks in _pairs(allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths) do
+        if _strfind(textureFilePath, regexedFullTextureFilePath) then
+            return allSpellRanks[1].localizedSpellName;
+        end
+    end
+
+    return nil;
 end
 
 --One action for using Battleground specific biscuits instead of regular food/water
@@ -143,7 +315,7 @@ function UseBGBiscuit(wg, ab, av)
         msg = "Nothing";
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 --One action for drinking and eating, press twice to do both
@@ -221,7 +393,7 @@ function UseManaPotion()
         end
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 --One action to use an exotic Mana booster based on item availability
@@ -244,7 +416,7 @@ function UseExoticManaBooster()
         end
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!")
+    _print("Attempting to use " .. msg .. "!")
 end
 
 --One action to use an armor potion based on item availability
@@ -267,7 +439,7 @@ function UseArmorPotion()
         end
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!")
+    _print("Attempting to use " .. msg .. "!")
 end
 
 --One action to use a Health potion based on location and item availability
@@ -305,7 +477,7 @@ function UseHealthPotion()
         end
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 --Uses available Mana Gem
@@ -321,7 +493,7 @@ function UseManaGem()
             break;
         end
     end
-    DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 --Uses available Healthstone
@@ -337,12 +509,12 @@ function UseHealthstone()
             break;
         end
     end
-    DEFAULT_CHAT_FRAME:AddMessage("CWF: Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 --Decide which spell to cast based on Clearcast proc
 function MageDPM(spell1, spell2)
-    local clearcast = isBuffNameActive("Clearcasting");
+    local clearcast = isBuffNameActive("Clearcasting"); -- todo convert this over to use texture-based-buff detection so that it will work on non-english clients!
 
     if (clearcast) then
         SpellStopCasting();
@@ -353,8 +525,28 @@ function MageDPM(spell1, spell2)
 
 end
 
+local SPELL__START_FISHING__TEXTURE_FILEPATH_REGEX = "[Tt][Rr][Aa][Dd][Ee].*[Ff][Ii][Ss][Hh][Ii][Nn][Gg]$"; -- trade_fishing
+
+local function tryGetLocalizedSpellNameFor_startFishingSpell()
+    _startFishing_localizedSpellName = _startFishing_localizedSpellName
+            or tryGetLocalizedSpellNameByRegexedTextureFilePath(SPELL__START_FISHING__TEXTURE_FILEPATH_REGEX) --00
+            or ""; -- start-fishing spell not found
+
+    return _startFishing_localizedSpellName ~= ""
+            and _startFishing_localizedSpellName
+            or nil;
+
+    -- 00   this should work on all clients because the texture is the same everywhere
+end
+
 --Equip Fishing pole or begin fishing if a pole is equipped, holding down any modifier (ctrl, alt, shift) will attach the best available lure
 function Fish(pole)
+    local localizedSpellNameForStartFishingSpell = tryGetLocalizedSpellNameFor_startFishingSpell();
+    if not localizedSpellNameForStartFishingSpell then
+        _print("Could not find the 'Start Fishing' spell in your spellbook! Cannot use Fish() function.", 1.0, 0.5, 0.5);
+        return;
+    end
+    
     local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"));
     local mainHandName = getItemName(mainHandLink);
     local pole_hasPole, pole_bag, pole_slot = isInBag(pole);
@@ -378,7 +570,7 @@ function Fish(pole)
             end
         end
     elseif (mainHandName ~= nil and mainHandName == pole) then
-        CastSpellByName("Fishing");
+        CastSpellByName(localizedSpellNameForStartFishingSpell, true);
     end
 end
 
@@ -446,19 +638,48 @@ function CancelShapeshift()
     end
 end
 
---Druid macro for shifting into bear form and using Feral Charge
-function FeralCharge()
-    local currentForm = getShapeshiftForm();
+-- druid macro for shifting into bear-form and using feral-charge
+local DRUID__FERAL_CHARGE__TEXTURE_PATH_REGEX = "[Aa][Bb][Ii][Ll][Ii][Tt][Yy].*[Dd][Rr][Uu][Ii][Dd].*[Ff][Ee][Rr][Aa][Ll].*[C][Hh][Aa][Rr][Gg][Ee]$"; -- ability_druid_feralcharge
+local function tryGetLocalizedSpellNameFor_druidFeralCharge()
+    _druid__feralCharge__localizedSpellName = _druid__feralCharge__localizedSpellName
+            or tryGetLocalizedSpellNameByRegexedTextureFilePath(DRUID__FERAL_CHARGE__TEXTURE_PATH_REGEX) --00
+            or ""; -- druid doesnt have feral charge
 
-    if (currentForm == 1) then
-        CastSpellByName("Feral Charge");
-    else
-        if (getSpellId("Dire Bear Form") ~= nil) then
-            Shapeshift("Dire Bear Form", false, true);
-        else
-            Shapeshift("Bear Form", false, true);
-        end
+    return _druid__feralCharge__localizedSpellName ~= ""
+            and _druid__feralCharge__localizedSpellName
+            or nil;
+
+    -- 00   this should work on all clients because the texture is the same everywhere
+end
+
+local DRUID__ANY_BEAR_FORM__TEXTURE_PATH_REGEX = "[Aa][Bb][Ii][Ll][Ii][Tt][Yy].*[Rr][Aa][Cc][Ii][Aa][Ll].*[Bb][Ee][Aa][Rr].*[Ff][Oo][Rr][Mm]$"; -- ability_racial_bearform    matches both "bear form" and "dire bear form"
+local function tryGetLocalizedSpellNameFor_druidBestBearForm()
+    _druid__bestBearForm__localizedSpellName = _druid__bestBearForm__localizedSpellName
+            or tryGetLocalizedSpellNameByRegexedTextureFilePath(DRUID__ANY_BEAR_FORM__TEXTURE_PATH_REGEX) --00
+            or ""; -- druid doesnt have bear form
+
+    return _druid__bestBearForm__localizedSpellName ~= ""
+            and _druid__bestBearForm__localizedSpellName
+            or nil;
+
+    -- 00   both "bear form" and "dire bear form" have the exact same texture
+end
+
+local DRUID_STANCE__BEARFORM = 1;
+function FeralCharge()
+    local bestBearFormIfAvailable = tryGetLocalizedSpellNameFor_druidBestBearForm();
+    local feralChargeSpellNameIfAvailable = tryGetLocalizedSpellNameFor_druidFeralCharge();
+
+    if not bestBearFormIfAvailable or not feralChargeSpellNameIfAvailable then
+        return; -- no point continuing if we the druid lacks bear-form or the feral-charge spell
     end
+
+    if getShapeshiftForm() == DRUID_STANCE__BEARFORM then
+        CastSpellByName(feralChargeSpellNameIfAvailable);
+        return;
+    end
+
+    Shapeshift(bestBearFormIfAvailable, false, true);
 end
 
 --Druid macro to return current form id
@@ -596,7 +817,7 @@ end
 --
 --        local matchedBuffs = findActiveBuffs("player", "Shadow Resistance Aura", "Blessing of Wisdom", "Seal of Wisdom")
 --        if matchedBuffs ~= nil then
---            for _, buffInfo in pairs(matchedBuffs) do
+--            for _, buffInfo in _pairs(matchedBuffs) do
 --                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffTexture .. "'")
 --            end
 --        end
@@ -635,7 +856,7 @@ end
 --
 --        local matchedBuffs = findActiveBuffsViaRegexedTextures("player", ".*_Holy_", ".*_Devotion$")
 --        if matchedBuffs ~= nil then
---            for _, buffInfo in pairs(matchedBuffs) do
+--            for _, buffInfo in _pairs(matchedBuffs) do
 --                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffTexture .. "'")
 --            end
 --        end
@@ -860,7 +1081,7 @@ end
 --
 --        local matchedBuffs = findActiveBuffs("player", "Shadow Resistance Aura", "Blessing of Wisdom", "Seal of Wisdom")
 --        if matchedBuffs ~= nil then
---            for _, buffInfo in pairs(matchedBuffs) do
+--            for _, buffInfo in _pairs(matchedBuffs) do
 --                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
 --            end
 --        end
@@ -899,7 +1120,7 @@ end
 --
 --        local matchedBuffs = findRegexedActiveBuffs("player", ".* Resistance Aura", "Blessing of .*", "Seal of .*")
 --        if matchedBuffs ~= nil then
---            for _, buffInfo in pairs(matchedBuffs) do
+--            for _, buffInfo in _pairs(matchedBuffs) do
 --                print("** index=" .. buffInfo.Index .. ", name='" .. buffInfo.BuffName .. "'")
 --            end
 --        end
@@ -1187,18 +1408,18 @@ end
 
 ----------------------------------------------------------------
 
-local _paladinImmunityTextureFilepaths = {
-    "interface\\icons\\spell_holy_restoration", --        Divine Protection
+local PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS = {
     "interface\\icons\\spell_holy_divineintervention", -- Divine Shield
+    "interface\\icons\\spell_holy_restoration", --        Divine Protection
     "interface\\icons\\spell_holy_sealofprotection", --   Blessing/Hand of Protection
     "interface\\icons\\spell_nature_timestop" --          Divine Intervention    
 };
 
-local _paladinImmunityTextureFilenamesRegexes = {
-    "[Ss]pell_[Hh]oly_[Rr]estoration$", --               Divine Protection
-    "[Ss]pell_[Hh]oly_[Dd]ivine[Ii]ntervention$", --     Divine Shield
-    "[Ss]pell_[Hh]oly_[Ss]eal[Oo]f[Pp]rotection$", --    Blessing/Hand of Protection
-    "[Ss]pell_[Nn]ature_[Tt]imestop$" --                 Divine Intervention
+local PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES = {
+    "[Ss][Pp][Ee][Ll].*[Hh][Oo][Ll][Yy].*[Rr][Ee][Ss][Tt][Oo][Rr][Aa][Tt][Ii][Oo][Nn]$", --                                 Divine Protection
+    "[Ss][Pp][Ee][Ll].*[Hh][Oo][Ll][Yy].*[Dd][Ii][Vv][Ii][Nn][Ee].*[Ii][Nn][Tt][Ee][Rr][Vv][Ee][Nn][Tt][Ii][Oo][Nn]$", --   Divine Shield
+    "[Ss][Pp][Ee][Ll].*[Hh][Oo][Ll][Yy].*[Ss][Ee][Aa][Ll].*[Oo][Ff].*[Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn]$", --         Blessing/Hand of Protection
+    "[Ss][Pp][Ee][Ll].*[Nn][Aa][Tt][Uu][Rr][Ee].*[Tt][Ii][Mm][Ee][Ss][Tt][Oo][Pp]$" --                                      Divine Intervention
 };
 
 -- Cancels common paladin immunities (Divine Protection, Divine Intervention, Blessing of Protection, etc)
@@ -1207,63 +1428,84 @@ function CancelPaladinImmunities(throttlingTimeInSeconds)
     -- @formatter:off
     return CancelPlayerBuffViaTextures( -- fast path
                   throttlingTimeInSeconds,
-                  _paladinImmunityTextureFilepaths[1],
-                  _paladinImmunityTextureFilepaths[2],
-                  _paladinImmunityTextureFilepaths[3],
-                  _paladinImmunityTextureFilepaths[4],
-                  _paladinImmunityTextureFilepaths[5],
-                  _paladinImmunityTextureFilepaths[6],
-                  _paladinImmunityTextureFilepaths[7],
-                  _paladinImmunityTextureFilepaths[8],
-                  _paladinImmunityTextureFilepaths[9],
-                  _paladinImmunityTextureFilepaths[10]
+                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[1],
+                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[2],
+                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[3],
+                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[4],
+                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[5],
+                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[6],
+                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[7],
+                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[8],
+                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[9],
+                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[10]
            )
            or
            CancelPlayerBuffViaRegexedTextures( -- fallback just in case some wowclients have different texture-paths
                   throttlingTimeInSeconds,
-                  _paladinImmunityTextureFilenamesRegexes[1],
-                  _paladinImmunityTextureFilenamesRegexes[2],
-                  _paladinImmunityTextureFilenamesRegexes[3],
-                  _paladinImmunityTextureFilenamesRegexes[4],
-                  _paladinImmunityTextureFilenamesRegexes[5],
-                  _paladinImmunityTextureFilenamesRegexes[6],
-                  _paladinImmunityTextureFilenamesRegexes[7],
-                  _paladinImmunityTextureFilenamesRegexes[8],
-                  _paladinImmunityTextureFilenamesRegexes[9],
-                  _paladinImmunityTextureFilenamesRegexes[10]
+                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[1],
+                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[2],
+                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[3],
+                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[4],
+                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[5],
+                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[6],
+                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[7],
+                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[8],
+                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[9],
+                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[10]
            )
     -- @formatter:off
 end
 
-local _paladinRighteousFuryTextureFilepath = "interface\\icons\\spell_holy_sealoffury";
-local _paladinRighteousFuryTextureFilenameRegex = "[Ss]pell_[Hh]oly_[Ss]eal[Oo]f[Ff]ury$";
+local PALADIN__RIGHTEOUS_FURY__TEXTURE_FILEPATH = "interface\\icons\\spell_holy_sealoffury";
+local PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX = "[Ss][Pp][Ee][Ll][Ll].*[Hh][Oo][Ll][Yy].*[Ss][Ee][Aa][Ll].*[Oo][Ff].*[Ff][Uu][Rr][Yy]$"; -- spell_holy_sealoffury
 
 -- Cancels paladin righteous fury buff
-function CancelPaladinRighteousFury(throttlingTimeInSeconds)
-    -- @formatter:off
-    return CancelPlayerBuffViaTextures(throttlingTimeInSeconds, _paladinRighteousFuryTextureFilepath) -- fast path
-           or
-           CancelPlayerBuffViaRegexedTextures(throttlingTimeInSeconds, _paladinRighteousFuryTextureFilenameRegex) -- fallback just in case some wowclients have different texture-paths
-    -- @formatter:off
+local _preferredMethodForCancellingRighteousFury; -- nil = still undecided, true = prefer exact texture-path matching, false = prefer regexed texture-path matching
+function CancelPaladinRighteousFury(throttlingTimeInSeconds) --@formatter:off
+    local cancelledViaExactTexturePath        = (_preferredMethodForCancellingRighteousFury == nil or     _preferredMethodForCancellingRighteousFury) and CancelPlayerBuffViaTextures(throttlingTimeInSeconds, PALADIN__RIGHTEOUS_FURY__TEXTURE_FILEPATH) ~= nil;
+    local cancelledViaExactRegexedTexturePath = (_preferredMethodForCancellingRighteousFury == nil or not _preferredMethodForCancellingRighteousFury) and CancelPlayerBuffViaRegexedTextures(throttlingTimeInSeconds, PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX) ~= nil;
+
+    if _preferredMethodForCancellingRighteousFury == nil and (cancelledViaExactTexturePath or cancelledViaExactRegexedTexturePath) then
+        -- at least one of the two methods found the buff   this is a tellsign that we should only prefer one of the two methods from
+        -- now on we prefer exact texture-path matching if it worked (most common)   otherwise prefer regexed texture-path matching
+        _preferredMethodForCancellingRighteousFury = cancelledViaExactTexturePath;
+    end
+
+    return cancelledViaExactTexturePath or cancelledViaExactRegexedTexturePath;
+end --@formatter:on
+
+local function tryGetLocalizedSpellNameFor_paladinRighteousFury()
+    _paladin__righteousFury__localizedSpellName = _paladin__righteousFury__localizedSpellName
+            or tryGetLocalizedSpellNameByRegexedTextureFilePath(PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX)
+            or ""; -- paladin too low level or not a paladin at all
+
+    return _paladin__righteousFury__localizedSpellName ~= ""
+            and _paladin__righteousFury__localizedSpellName
+            or nil;
 end
 
 -- Ensures paladin righteous fury buff is active, returns true if it was off and got cast, false if it was already on
 function EnsurePaladinRighteousFuryIsOn()
-    local isAlreadyOn = findMostRecentActiveBuffViaRegexedTextures("player", _paladinRighteousFuryTextureFilenameRegex) ~= nil;
+    local localizedSpellName = tryGetLocalizedSpellNameFor_paladinRighteousFury();
+    if not localizedSpellName then
+        return false; -- cant find the spell   not a paladin or too low level paladin
+    end
+    
+    local isAlreadyOn = findMostRecentActiveBuffViaRegexedTextures("player", PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX) ~= nil;
     if isAlreadyOn then
         return false;    
     end
 
-    CastSpellByName("Righteous Fury", true);
+    CastSpellByName(localizedSpellName, true);
     return true;
 end
 
 ----------------------------------------------------------------
 
-local _edwardTheOddBuffTextureFilepath = "interface\\icons\\spell_holy_searinglight";
+local WEAPON__EDWARD_THE_ODD__BUFF_PROC__TEXTURE_FILEPATH = "interface\\icons\\spell_holy_searinglight"; -- todo  add regexed version too?
 
 function isEdwardTheOddBuffProcced()
-    return findMostRecentActiveBuffViaTextures("player", _edwardTheOddBuffTextureFilepath) ~= nil;
+    return findMostRecentActiveBuffViaTextures("player", WEAPON__EDWARD_THE_ODD__BUFF_PROC__TEXTURE_FILEPATH) ~= nil;
 end
 
 ----------------------------------------------------------------
@@ -1273,7 +1515,7 @@ local _havePrintedDeprecationWarningFor_isBuffNameActive = false;
 --[DEPRECATED: Use findRegexedActiveBuffs() instead] Reads unit's buffs and returns isBuffActive, buffIndex, numBuffs
 function isBuffNameActive(buff, unit)
     if not _havePrintedDeprecationWarningFor_isBuffNameActive then
-        DEFAULT_CHAT_FRAME:AddMessage("CWF: [DEPRECATION WARNING] isBuffNameActive() is deprecated, please use findRegexedActiveBuffs() instead!", 1, 0.5, 0);
+        _print("[DEPRECATION WARNING] isBuffNameActive() is deprecated, please use findRegexedActiveBuffs() instead!", 1, 0.5, 0);
         _havePrintedDeprecationWarningFor_isBuffNameActive = true;
     end
     
@@ -1431,22 +1673,6 @@ function UseItemInBag(itemNameRegex, useOnSelf)
     return true
 end
 
---returns id of a spell from player's spellbook
-function getSpellId(spell)
-    local i = 1
-    while true do
-        local spellName, _ = GetSpellName(i, BOOKTYPE_SPELL)
-        if not spellName then
-            do
-                break
-            end
-        end
-        if spellName == spell then
-            return i;
-        end
-        i = i + 1
-    end
-end
 
 -- Function to determine if spell or ability is on Cooldown, returns true or false. (For experimental mode that checks the cd based on your latency: uncomment the commented lines, and comment out the last return line)
 function isSpellOnCd(spell)
@@ -1519,8 +1745,8 @@ function isInBag(itemNameRegex)
     return found, itemBag, itemSlot;
 end
 
-local bracketEnd = "]";
-local bracketStart = "|h";
+local BRACKET_END = "]";
+local BRACKET_START = "|h";
 
 --Helper function to get an item name given an item link
 function getItemName(itemLink)
@@ -1530,8 +1756,8 @@ function getItemName(itemLink)
 
     return _strsub(
             itemLink,
-            _strfind(itemLink, bracketStart, 1, true) + 3,
-            _strfind(itemLink, bracketEnd, 1, true) - 1
+            _strfind(itemLink, BRACKET_START, 1, true) + 3,
+            _strfind(itemLink, BRACKET_END, 1, true) - 1
     );
 end
 
@@ -1562,7 +1788,7 @@ function printBuffTextures()
         if buffIndex ~= nil and buffIndex >= 0 then -- prefer exhaustive scanning
             local fullTexturePath = GetPlayerBuffTexture(buffIndex) or "";
             local textureFileName = _strsplit(fullTexturePath, "Icons\\")[2] or "nil";
-            DEFAULT_CHAT_FRAME:AddMessage("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(textureFileName) .. ", fullPath=" .. _tostring(fullTexturePath));
+            _print("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(textureFileName) .. ", fullPath=" .. _tostring(fullTexturePath));
         end
     end
 end
