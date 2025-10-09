@@ -1648,13 +1648,16 @@ end
 
 --Uses your normal mount or AQ40 mount if inside AQ40
 function MountAQ(normal, aq)
-    local normalFound, normalBag, normalSlot = isInBag(normal);
-    local aqFound, aqBag, aqSlot = isInBag(aq);
     local zone = GetRealZoneText();
-
-    if ((zone == "Temple of Ahn'Qiraj" or zone == "Ahn'Qiraj") and aqFound == true) then
+    if zone == "Temple of Ahn'Qiraj" or zone == "Ahn'Qiraj" then
+        local aqFound, aqBag, aqSlot = isInBag(aq);
+        
         UseContainerItem(aqBag, aqSlot, 1);
-    elseif (normalFound) then
+        return;
+    end
+
+    local normalFound, normalBag, normalSlot = isInBag(normal);
+    if (normalFound) then
         UseContainerItem(normalBag, normalSlot, 1);
     end
 end
