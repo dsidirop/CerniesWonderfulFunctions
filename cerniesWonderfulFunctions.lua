@@ -22,6 +22,19 @@ local _paladin__righteousFury__localizedSpellName;
 local _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames
 local _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths
 
+local ROYAL_BLUE = { 0.39, 0.584, 0.929 }; -- Cornflower blue (#6495ED)
+local function _print(msg, r, g, b, id)
+    -- must be declared after _namedColors!
+    DEFAULT_CHAT_FRAME:AddMessage(
+            "[CWF] " .. msg,
+            r ~= nil and r or ROYAL_BLUE[1],
+            g ~= nil and g or ROYAL_BLUE[2],
+            b ~= nil and b or ROYAL_BLUE[3],
+            id
+    )
+end
+
+
 local function _strtrim(input)
     return _strgsub(input or "", "^%s*(.-)%s*$", "%1")
 end
@@ -44,7 +57,7 @@ function CerniesWonderfulFunctions_OnLoad()
     this:RegisterEvent("PLAYER_REGEN_ENABLED")
     this:RegisterEvent("PLAYER_REGEN_DISABLED")
     
-    DEFAULT_CHAT_FRAME:AddMessage("Cernie's Wonderful Functions (CWF) loaded. Please see the readme for instructions.");
+    _print("Addon loaded. Please see the readme for instructions.");
 end
 
 function CerniesWonderfulFunctions_OnEvent(event)
@@ -141,7 +154,7 @@ function UseBGBandage(
         end
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("[CWF] Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 -- returns spell-book-index-number of a spell from player's spellbook   bare in mind that the
@@ -237,7 +250,7 @@ end
 function printAllSpellsOfCurrentPlayer()
     local _, spellsIndexedBy_localizedSpellNames = getAllSpellsOfCurrentPlayerOnce();
 
-    DEFAULT_CHAT_FRAME:AddMessage("[CWF] All spells of current player (total " .. _tostring(_getn(spellsIndexedBy_localizedSpellNames)) .. " distinct spell names):");
+    _print("All spells of current player (total " .. _tostring(_getn(spellsIndexedBy_localizedSpellNames)) .. " distinct spell names):");
 
     for localizedSpellName, spells in _pairs(spellsIndexedBy_localizedSpellNames) do
         DEFAULT_CHAT_FRAME:AddMessage("** localizedSpellName='" .. localizedSpellName .. "'")
@@ -302,7 +315,7 @@ function UseBGBiscuit(wg, ab, av)
         msg = "Nothing";
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("[CWF] Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 --One action for drinking and eating, press twice to do both
@@ -380,7 +393,7 @@ function UseManaPotion()
         end
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("[CWF] Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 --One action to use an exotic Mana booster based on item availability
@@ -403,7 +416,7 @@ function UseExoticManaBooster()
         end
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("[CWF] Attempting to use " .. msg .. "!")
+    _print("Attempting to use " .. msg .. "!")
 end
 
 --One action to use an armor potion based on item availability
@@ -426,7 +439,7 @@ function UseArmorPotion()
         end
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("[CWF] Attempting to use " .. msg .. "!")
+    _print("Attempting to use " .. msg .. "!")
 end
 
 --One action to use a Health potion based on location and item availability
@@ -464,7 +477,7 @@ function UseHealthPotion()
         end
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage("[CWF] Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 --Uses available Mana Gem
@@ -480,7 +493,7 @@ function UseManaGem()
             break;
         end
     end
-    DEFAULT_CHAT_FRAME:AddMessage("[CWF] Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 --Uses available Healthstone
@@ -496,7 +509,7 @@ function UseHealthstone()
             break;
         end
     end
-    DEFAULT_CHAT_FRAME:AddMessage("[CWF] Attempting to use " .. msg .. "!");
+    _print("Attempting to use " .. msg .. "!");
 end
 
 --Decide which spell to cast based on Clearcast proc
@@ -530,7 +543,7 @@ end
 function Fish(pole)
     local localizedSpellNameForStartFishingSpell = tryGetLocalizedSpellNameFor_startFishingSpell();
     if not localizedSpellNameForStartFishingSpell then
-        DEFAULT_CHAT_FRAME:AddMessage("[CWF] Could not find the 'Start Fishing' spell in your spellbook! Cannot use Fish() function.", 1.0, 0.5, 0.5);
+        _print("Could not find the 'Start Fishing' spell in your spellbook! Cannot use Fish() function.", 1.0, 0.5, 0.5);
         return;
     end
     
@@ -1502,7 +1515,7 @@ local _havePrintedDeprecationWarningFor_isBuffNameActive = false;
 --[DEPRECATED: Use findRegexedActiveBuffs() instead] Reads unit's buffs and returns isBuffActive, buffIndex, numBuffs
 function isBuffNameActive(buff, unit)
     if not _havePrintedDeprecationWarningFor_isBuffNameActive then
-        DEFAULT_CHAT_FRAME:AddMessage("[CWF] [DEPRECATION WARNING] isBuffNameActive() is deprecated, please use findRegexedActiveBuffs() instead!", 1, 0.5, 0);
+        _print("[DEPRECATION WARNING] isBuffNameActive() is deprecated, please use findRegexedActiveBuffs() instead!", 1, 0.5, 0);
         _havePrintedDeprecationWarningFor_isBuffNameActive = true;
     end
     
@@ -1775,7 +1788,7 @@ function printBuffTextures()
         if buffIndex ~= nil and buffIndex >= 0 then -- prefer exhaustive scanning
             local fullTexturePath = GetPlayerBuffTexture(buffIndex) or "";
             local textureFileName = _strsplit(fullTexturePath, "Icons\\")[2] or "nil";
-            DEFAULT_CHAT_FRAME:AddMessage("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(textureFileName) .. ", fullPath=" .. _tostring(fullTexturePath));
+            _print("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(textureFileName) .. ", fullPath=" .. _tostring(fullTexturePath));
         end
     end
 end
