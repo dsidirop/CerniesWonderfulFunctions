@@ -1,5 +1,3 @@
-CerniesWonderfulFunctions = {};
-
 local _isPlayerInCombat = false;
 
 local _tostring = tostring
