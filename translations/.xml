@@ -1,0 +1,31 @@
+﻿<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/  ../Ui.xsd">
+    <!-- order -->
+
+    <!-- localizations -->
+    <Include file="localizations__enUS__.lua"/>
+    <Include file="localizations_deDE.lua"/>
+    <Include file="localizations_esES.lua"/>
+    <Include file="localizations_frFR.lua"/>
+    <Include file="localizations_itIT.lua"/>
+    <Include file="localizations_koKR.lua"/>
+    <Include file="localizations_ptBR.lua"/>
+    <Include file="localizations_ruRU.lua"/>
+    <Include file="localizations_zhCN.lua"/>
+    <Include file="localizations_zhTW.lua"/>
+
+    <!-- translations -->
+    <Include file="translations__enUS__.lua"/>
+    <Include file="translations_deDE.lua"/>
+    <Include file="translations_esES.lua"/>
+    <Include file="translations_frFR.lua"/>
+    <Include file="translations_itIT.lua"/>
+    <Include file="translations_koKR.lua"/>
+    <Include file="translations_ptBR.lua"/>
+    <Include file="translations_ruRU.lua"/>
+    <Include file="translations_zhCN.lua"/>
+    <Include file="translations_zhTW.lua"/>
+
+    <!-- core -->
+    <Include file="localizer.lua"/>
+    <Include file="translator.lua"/>
+</Ui>

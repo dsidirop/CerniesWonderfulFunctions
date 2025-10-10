@@ -1,3 +1,7 @@
+local L = CerniesWonderfulFunctions.Localize; --snapshot these shorthands for the sake of performance and convenience
+local T = CerniesWonderfulFunctions.Translate;
+local TF = CerniesWonderfulFunctions.TranslateFormatted;
+
 local _isPlayerInCombat = false;
 
 local _tostring = tostring
@@ -32,6 +36,14 @@ local function _print(msg, r, g, b, id)
     )
 end
 
+local function _printWarning(msg)
+    _print(msg, 1, 0.5, 0);
+end
+
+local function _printDeprecationWarning(msg)
+    _printWarning(T("[DEPRECATED] ") .. msg);
+end
+
 
 local function _strtrim(input)
     return _strgsub(input or "", "^%s*(.-)%s*$", "%1")
@@ -50,7 +62,7 @@ local function _strsplit(self, delimiter)
     return result
 end
 
-local _rootFrame = CreateFrame("Frame", "CerniesWonderfulFunctionsFrame", UIParent)
+local _rootFrame = CreateFrame("Frame", "CerniesWonderfulFunctionsFrame", UIParent);
 _rootFrame:RegisterEvent("ADDON_LOADED") -- :SetScript("OnLoad", ...) would not work because it only works if defined via the xml file!
 _rootFrame:RegisterEvent("SPELL_UPDATE");
 _rootFrame:RegisterEvent("PLAYER_REGEN_ENABLED");
@@ -65,17 +77,21 @@ local function CerniesWonderfulFunctions_OnEvent()
             return
         end
 
-        _print("Addon loaded. Please see the readme for instructions.");
+        _print(T "Addon loaded. Have a look at the the readme file for instructions.");
         return
     end
 
     if eventSnapshot == "PLAYER_REGEN_DISABLED" then
         _isPlayerInCombat = true;
-
-    elseif eventSnapshot == "PLAYER_REGEN_ENABLED" then
+        return
+    end
+    
+    if eventSnapshot == "PLAYER_REGEN_ENABLED" then
         _isPlayerInCombat = false;
+        return
+    end
 
-    elseif eventSnapshot == "SPELL_UPDATE" then
+    if eventSnapshot == "SPELL_UPDATE" then
         -- reset these so they get looked up afresh next time they are used
         _startFishing_localizedSpellName = nil;
         _druid__feralCharge__localizedSpellName = nil;
@@ -84,6 +100,7 @@ local function CerniesWonderfulFunctions_OnEvent()
 
         _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames = nil;
         _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths = nil;
+        return
     end
 end
 
@@ -91,19 +108,19 @@ _rootFrame:SetScript("OnEvent", CerniesWonderfulFunctions_OnEvent)
 
 function UseBestBandage()
     UseBGBandage(
-            "Warsong Gulch Runecloth Bandage",
-            "Arathi Basin Runecloth Bandage",
-            "Alterac Heavy Runecloth Bandage",
-            "Heavy Runecloth Bandage",
-            "Runecloth Bandage",
-            "Heavy Mageweave Bandage",
-            "Mageweave Bandage",
-            "Heavy Silk Bandage",
-            "Silk Bandage",
-            "Heavy Linen Bandage",
-            "Linen Bandage",
-            "Heavy Wool Bandage",
-            "Wool Bandage"
+            L "Warsong Gulch Runecloth Bandage",
+            L "Arathi Basin Runecloth Bandage",
+            L "Alterac Heavy Runecloth Bandage",
+            L "Heavy Runecloth Bandage",
+            L "Runecloth Bandage",
+            L "Heavy Mageweave Bandage",
+            L "Mageweave Bandage",
+            L "Heavy Silk Bandage",
+            L "Silk Bandage",
+            L "Heavy Linen Bandage",
+            L "Linen Bandage",
+            L "Heavy Wool Bandage",
+            L "Wool Bandage"
     );
 end
 
@@ -130,18 +147,18 @@ function UseBGBandage(
 )
     --'Warsong Gulch Runecloth Bandage''Alterac Heavy Runecloth Bandage''Arathi Basin Runecloth Bandage''Heavy Runecloth Bandage'
     local msg;
-    local zone = GetRealZoneText();
+    local zone = GetRealZoneText(); -- get the localized zone-name
     local wgFound, wgBag, wgSlot = isInBag(wg);
     local abFound, abBag, abSlot = isInBag(ab);
     local avFound, avBag, avSlot = isInBag(av);
 
-    if (zone == "Warsong Gulch" and wgFound == true) then
+    if (zone == L "Warsong Gulch" and wgFound == true) then
         UseContainerItem(wgBag, wgSlot);
         msg = wg;
-    elseif (zone == "Alterac Valley" and avFound == true) then
+    elseif (zone == L "Alterac Valley" and avFound == true) then
         UseContainerItem(avBag, avSlot);
         msg = av;
-    elseif (zone == "Arathi Basin" and abFound == true) then
+    elseif (zone == L "Arathi Basin" and abFound == true) then
         UseContainerItem(abBag, abSlot);
         msg = ab;
     else
@@ -155,7 +172,7 @@ function UseBGBandage(
             if (normalFound == true) then
                 UseContainerItem(normalBag, normalSlot);
                 msg = normals[i];
-                break;
+                break ;
             end
         end
 
@@ -164,7 +181,7 @@ function UseBGBandage(
         end
     end
 
-    _print("Attempting to use " .. msg .. "!");
+    _print(TF("** Attempting to use '%s'!", msg));
 end
 
 -- returns spell-book-index-number of a spell from player's spellbook   bare in mind that the
@@ -220,7 +237,7 @@ local function getAllSpellsOfCurrentPlayerOnce()
 
                         -- spellId = ...   unfortunately in vanilla wow there is no way to get the numeric-spell-id :(
                     })
-                end    
+                end
             end
         end
     end
@@ -243,7 +260,7 @@ local function getAllSpellsOfCurrentPlayerOnce()
                 -- shouldnt happen but just in case
                 return false
             end
-            
+
             return a.rank > b.rank
         end)
 
@@ -251,11 +268,10 @@ local function getAllSpellsOfCurrentPlayerOnce()
     end
 
     return _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths, _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames
-    
+
     --00  be careful not to confuse the spell-index number with the numeric-spell-id of the spell they are not the same
     --    and in fact in vanilla wow we cannot automatically get the numeric-spell-id of the spell in any way
 end
-
 
 function printAllSpellsOfCurrentPlayer()
     local _, spellsIndexedBy_localizedSpellNames = getAllSpellsOfCurrentPlayerOnce();
@@ -263,9 +279,9 @@ function printAllSpellsOfCurrentPlayer()
     _print("All spells of current player (total " .. _tostring(_getn(spellsIndexedBy_localizedSpellNames)) .. " distinct spell names):");
 
     for localizedSpellName, spells in _pairs(spellsIndexedBy_localizedSpellNames) do
-        DEFAULT_CHAT_FRAME:AddMessage("** localizedSpellName='" .. localizedSpellName .. "'")
+        _print("** localizedSpellName='" .. localizedSpellName .. "'")
         for _, spell in _ipairs(spells) do
-            DEFAULT_CHAT_FRAME:AddMessage(
+            _print(
                     "**** "
                             .. "rank='" .. _tostring(spell.rank) .. "', "
                             .. "texture='" .. spell.texture .. "', "
@@ -313,29 +329,30 @@ end
 --One action for using Battleground specific biscuits instead of regular food/water
 function UseBGBiscuit(wg, ab, av)
     --'Warsong Gulch Enriched Ration''Alterac Manna Biscuit''Arathi Basin Enriched Ration'
-    local zone = GetRealZoneText();
+    local zone = GetRealZoneText(); -- get the localized zone-name
     local msg;
     local wgFound, wgBag, wgSlot = isInBag(wg);
     local abFound, abBag, abSlot = isInBag(ab);
     local avFound, avBag, avSlot = isInBag(av);
 
-    if (zone == "Warsong Gulch" and wgFound == true) then
+    if (zone == L "Warsong Gulch" and wgFound == true) then
         UseContainerItem(wgBag, wgSlot);
         msg = wg;
-    elseif (zone == "Alterac Valley" and avFound == true) then
+    elseif (zone == L "Alterac Valley" and avFound == true) then
         UseContainerItem(avBag, avSlot);
         msg = av;
-    elseif (zone == "Arathi Basin" and abFound == true) then
+    elseif (zone == L "Arathi Basin" and abFound == true) then
         UseContainerItem(abBag, abSlot);
         msg = ab;
     elseif (avFound == true) then
         UseContainerItem(avBag, avSlot);
         msg = av;
     else
-        msg = "Nothing";
+        _print(TF("** No biscuits found!", msg));
+        return;
     end
 
-    _print("Attempting to use " .. msg .. "!");
+    _print(TF("** Attempting to use '%s'!", msg));
 end
 
 --One action for drinking and eating, press twice to do both
@@ -378,158 +395,184 @@ function NomWater(water)
     end
 end
 
+local STANDARD_MANA_POTIONS = {
+    L 'Major Mana Draught', -- best ones
+    L 'Major Mana Potion',
+    L 'Combat Mana Potion',
+    L 'Wildvine Potion',
+    L 'Superior Mana Potion',
+    L 'Greater Mana Potion',
+    L 'Mana Potion',
+    L 'Lesser Mana Potion',
+    L 'Minor Mana Potion', -- worst ones
+};
+
 --One action to use a Mana potion based on location and item availability
 function UseManaPotion()
-    local potion = { 'Major Mana Draught', 'Major Mana Potion', 'Combat Mana Potion', 'Wildvine Potion', 'Superior Mana Potion', 'Greater Mana Potion', 'Mana Potion', 'Lesser Mana Potion', 'Minor Mana Potion' };
-    local zone = GetRealZoneText();
-    local msg = "Nothing";
+    local zone = GetRealZoneText(); -- get the localized zone-name
+
     local potFound, potBag, potSlot, duration;
 
     --based on battleground zone use 'Major Mana Draught'
-    potFound, potBag, potSlot = isInBag(potion[1]);
-    if (potFound == true and (zone == "Warsong Gulch" or zone == "Alterac Valley" or zone == "Arathi Basin")) then
+    potFound, potBag, potSlot = isInBag(STANDARD_MANA_POTIONS[1]);
+    if (potFound == true and (zone == L "Warsong Gulch" or zone == L "Alterac Valley" or zone == L "Arathi Basin")) then
         _, duration, _ = GetContainerItemCooldown(potBag, potSlot);
         if (duration == 0) then
             UseContainerItem(potBag, potSlot, 1);
-            msg = potion[1];
+            _print(TF("** Attempting to use '%s'!", STANDARD_MANA_POTIONS[1]))
         else
-            msg = potion[1] .. ", but it is on Cooldown";
+            _print(TF("** '%s' is on cooldown!", STANDARD_MANA_POTIONS[1]))
         end
+        return;
+    end
 
-        --otherwise loop through the rest of the possible potions and use the highest value potion available
-    else
-        for i = 2, _getn(potion), 1 do
-            potFound, potBag, potSlot = isInBag(potion[i]);
-            if (potFound) then
-                _, duration, _ = GetContainerItemCooldown(potBag, potSlot);
-                if (duration == 0) then
-                    UseContainerItem(potBag, potSlot, 1);
-                    msg = potion[i];
-                else
-                    msg = potion[i] .. ", but it is on Cooldown";
-                end
-                break;
+    --otherwise loop through the rest of the possible potions and use the highest value potion available
+    for i = 2, _getn(STANDARD_MANA_POTIONS) do
+        potFound, potBag, potSlot = isInBag(STANDARD_MANA_POTIONS[i]);
+        if (potFound) then
+            _, duration, _ = GetContainerItemCooldown(potBag, potSlot);
+            if (duration == 0) then
+                UseContainerItem(potBag, potSlot, 1);
+                _print(TF("** Attempting to use '%s'!", STANDARD_MANA_POTIONS[i]))
+            else
+                _print(TF("** '%s' is on cooldown!", STANDARD_MANA_POTIONS[i]))
             end
+            return;
         end
     end
 
-    _print("Attempting to use " .. msg .. "!");
+    _print(T "** No standard mana-potions found to use!")
 end
+
+local EXOTIC_MANA_BOOSTERS = { L "Nordanaar Herbal Tea", L "Dark Rune", L "Demonic Rune" }
 
 --One action to use an exotic Mana booster based on item availability
 function UseExoticManaBooster()
-    local potion = { 'Nordanaar Herbal Tea', 'Dark Rune', 'Demonic Rune' }
-
-    local msg = "Nothing"
     local potFound, potBag, potSlot, duration
-    for i = 1, _getn(potion), 1 do
-        potFound, potBag, potSlot = isInBag(potion[i])
+    for i = 1, _getn(potion) do
+        potFound, potBag, potSlot = isInBag(EXOTIC_MANA_BOOSTERS[i])
         if (potFound) then
             _, duration, _ = GetContainerItemCooldown(potBag, potSlot)
             if (duration == 0) then
                 UseContainerItem(potBag, potSlot, 1)
-                msg = potion[i]
+                _print(TF("** Attempting to use '%s'!", EXOTIC_MANA_BOOSTERS[i]))
             else
-                msg = potion[i] .. ", but it is on Cooldown"
+                _print(TF("** '%s' is on cooldown!", EXOTIC_MANA_BOOSTERS[i]))
             end
             break
         end
     end
 
-    _print("Attempting to use " .. msg .. "!")
+    _print(T "** No exotic mana-potions found to use!")
 end
+
+local ARMOR_POTIONS = { L "Greater Stoneshield Potion", L "Lesser Stoneshield Potion" }
 
 --One action to use an armor potion based on item availability
 function UseArmorPotion()
-    local potion = { 'Greater Stoneshield Potion', 'Lesser Stoneshield Potion' }
-
-    local msg = "Nothing"
     local potFound, potBag, potSlot, duration
-    for i = 1, _getn(potion), 1 do
-        potFound, potBag, potSlot = isInBag(potion[i])
-        if (potFound) then
+    for i = 1, _getn(ARMOR_POTIONS) do
+        potFound, potBag, potSlot = isInBag(ARMOR_POTIONS[i])
+        if potFound then
             _, duration, _ = GetContainerItemCooldown(potBag, potSlot)
             if (duration == 0) then
                 UseContainerItem(potBag, potSlot, 1)
-                msg = potion[i]
+                _print(TF("** Attempting to use '%s'!", ARMOR_POTIONS[i]))
             else
-                msg = potion[i] .. ", but it is on Cooldown"
+                _print(TF("** '%s' is on cooldown!", ARMOR_POTIONS[i]))
+            end
+            return
+        end
+    end
+
+    _print(T "** No armor-potions found to use!")
+end
+
+local STANDARD_HEALTH_POTIONS = {
+    L "Major Healing Draught", -- best ones
+    L "Major Healing Potion",
+    L "Combat Healing Potion",
+    L "Superior Healing Potion",
+    L "Greater Healing Potion",
+    L "Healing Potion",
+    L "Lesser Healing Potion",
+    L "Minor Healing Potion", -- worst ones
+};
+
+--One action to use a Health potion based on location and item availability
+function UseHealthPotion()
+    local zone = GetRealZoneText(); -- get the localized zone-name
+    local potFound, potBag, potSlot, duration;
+
+    --based on battleground zone use 'Major Healing Draught'
+    potFound, potBag, potSlot = isInBag(STANDARD_HEALTH_POTIONS[1]);
+    if (potFound == true and (zone == L "Warsong Gulch" or zone == L "Alterac Valley" or zone == L "Arathi Basin")) then
+        _, duration, _ = GetContainerItemCooldown(potBag, potSlot);
+        if (duration == 0) then
+            UseContainerItem(potBag, potSlot, 1);
+            _print(TF("** Attempting to use '%s'!", STANDARD_HEALTH_POTIONS[1]));
+        else
+            _print(TF("** '%s' is on cooldown!", STANDARD_HEALTH_POTIONS[1]));
+        end
+        return
+    end
+
+    --otherwise loop through the rest of the possible potions and use the highest value potion available
+    for i = 2, _getn(STANDARD_HEALTH_POTIONS), 1 do
+        potFound, potBag, potSlot = isInBag(STANDARD_HEALTH_POTIONS[i]);
+        if (potFound) then
+            _, duration, _ = GetContainerItemCooldown(potBag, potSlot);
+            if (duration == 0) then
+                UseContainerItem(potBag, potSlot, 1);
+                _print(TF("** Attempting to use '%s'!", STANDARD_HEALTH_POTIONS[i]));
+            else
+                _print(TF("** '%s' is on cooldown!", STANDARD_HEALTH_POTIONS[i]));
             end
             break
         end
     end
 
-    _print("Attempting to use " .. msg .. "!")
+    _print(T "** No health-potions found to use!")
 end
 
---One action to use a Health potion based on location and item availability
-function UseHealthPotion()
-    local potion = { 'Major Healing Draught', 'Major Healing Potion', 'Combat Healing Potion', 'Superior Healing Potion', 'Greater Healing Potion', 'Healing Potion', 'Lesser Healing Potion', 'Minor Healing Potion' };
-    local zone = GetRealZoneText();
-    local msg = "Nothing";
-    local potFound, potBag, potSlot, duration;
-
-    --based on battleground zone use 'Major Healing Draught'
-    potFound, potBag, potSlot = isInBag(potion[1]);
-    if (potFound == true and (zone == "Warsong Gulch" or zone == "Alterac Valley" or zone == "Arathi Basin")) then
-        _, duration, _ = GetContainerItemCooldown(potBag, potSlot);
-        if (duration == 0) then
-            UseContainerItem(potBag, potSlot, 1);
-            msg = potion[1];
-        else
-            msg = potion[1] .. ", but it is on Cooldown";
-        end
-
-        --otherwise loop through the rest of the possible potions and use the highest value potion available
-    else
-        for i = 2, _getn(potion), 1 do
-            potFound, potBag, potSlot = isInBag(potion[i]);
-            if (potFound) then
-                _, duration, _ = GetContainerItemCooldown(potBag, potSlot);
-                if (duration == 0) then
-                    UseContainerItem(potBag, potSlot, 1);
-                    msg = potion[i];
-                else
-                    msg = potion[i] .. ", but it is on Cooldown";
-                end
-                break;
-            end
-        end
-    end
-
-    _print("Attempting to use " .. msg .. "!");
-end
+local MAGE_MANA_GEMS = { L "Mana Ruby", L "Mana Citrine", L "Mana Jade", L "Mana Agate" };
 
 --Uses available Mana Gem
 function UseManaGem()
-    local msg = "Nothing";
-    local gem = { "Mana Ruby", "Mana Citrine", "Mana Jade", "Mana Agate" };
     local hasGem, gemBag, gemSlot;
-    for i = 1, 4 do
-        hasGem, gemBag, gemSlot = isInBag(gem[i]);
+    for i = 1, _getn(MAGE_MANA_GEMS) do
+        hasGem, gemBag, gemSlot = isInBag(MAGE_MANA_GEMS[i]);
         if (hasGem == true) then
             UseContainerItem(gemBag, gemSlot, 1);
-            msg = gem[i];
-            break;
+            _print(TF("** Attempting to use '%s'!", MAGE_MANA_GEMS[i]));
+            return;
         end
     end
-    _print("Attempting to use " .. msg .. "!");
+
+    _print(T "** No mage-gems found to use!")
 end
+
+local HEALTHSTONES = {
+    L "Major Healthstone", -- best ones
+    L "Greater Healthstone",
+    L "Healthstone",
+    L "Lesser Healthstone",
+    L "Minor Healthstone" -- worst ones
+};
 
 --Uses available Healthstone
 function UseHealthstone()
-    local msg = "Nothing";
-    local healthstone = { "Major Healthstone", "Greater Healthstone", "Healthstone", "Lesser Healthstone", "Minor Healthstone" };
     local hasStone, stoneBag, stoneSlot;
-    for i = 1, 5 do
-        hasStone, stoneBag, stoneSlot = isInBag(healthstone[i]);
+    for i = 1, _getn(HEALTHSTONES) do
+        hasStone, stoneBag, stoneSlot = isInBag(HEALTHSTONES[i]);
         if (hasStone == true) then
             UseContainerItem(stoneBag, stoneSlot, 1);
-            msg = healthstone[i];
-            break;
+            _print(TF("** Attempting to use '%s'!", HEALTHSTONES[i]));
+            return
         end
     end
-    _print("Attempting to use " .. msg .. "!");
+    
+    _print(T "** No healthstones found to use!")
 end
 
 --Decide which spell to cast based on Clearcast proc
@@ -563,15 +606,21 @@ end
 function Fish(pole)
     local localizedSpellNameForStartFishingSpell = tryGetLocalizedSpellNameFor_startFishingSpell();
     if not localizedSpellNameForStartFishingSpell then
-        _print("Could not find the 'Start Fishing' spell in your spellbook! Cannot use Fish() function.", 1.0, 0.5, 0.5);
-        return;
+        _printWarning(T "Could not find the 'Start Fishing' spell in your spellbook! (did you remember to pick up the profession?)");
+        return
     end
-    
+
     local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"));
     local mainHandName = getItemName(mainHandLink);
     local pole_hasPole, pole_bag, pole_slot = isInBag(pole);
     local mod = false;
-    local lures = { "Aquadynamic Fish Attractor", "Flesh Eating Worm", "Bright Baubles", "Nightcrawlers", "Shiny Bauble" };
+    local lures = {
+        L "Aquadynamic Fish Attractor", -- strongest lures
+        L "Flesh Eating Worm",
+        L "Bright Baubles",
+        L "Nightcrawlers",
+        L "Shiny Bauble" -- weakest lures
+    };
     local lureFound, lureBag, lureSlot;
 
     if (IsAltKeyDown() or IsShiftKeyDown() or IsControlKeyDown()) then
@@ -586,7 +635,7 @@ function Fish(pole)
             if (lureFound) then
                 UseContainerItem(lureBag, lureSlot);
                 PickupInventoryItem(16);
-                break;
+                break ;
             end
         end
     elseif (mainHandName ~= nil and mainHandName == pole) then
@@ -691,12 +740,12 @@ function FeralCharge()
     local feralChargeSpellNameIfAvailable = tryGetLocalizedSpellNameFor_druidFeralCharge();
 
     if not bestBearFormIfAvailable or not feralChargeSpellNameIfAvailable then
-        return; -- no point continuing if we the druid lacks bear-form or the feral-charge spell
+        return -- no point continuing if the druid lacks bear-form / feral-charge spells altogether
     end
 
     if getShapeshiftForm() == DRUID_STANCE__BEARFORM then
         CastSpellByName(feralChargeSpellNameIfAvailable);
-        return;
+        return
     end
 
     Shapeshift(bestBearFormIfAvailable, false, true);
@@ -750,12 +799,14 @@ local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopA
     matchedBuffsCount,
     currentBuffTexture,
     currentBuffIsMatching = -1, nil, 0, nil, false;
-    for i = 32, 0, -1 do --00 exhaustive search from 32 (most recent buff) down to 0 (oldest buff)
+    for i = 32, 0, -1 do
+        --00 exhaustive search from 32 (most recent buff) down to 0 (oldest buff)
 
         -- print("*****")
 
         buffIndex = GetPlayerBuff(i)
-        if buffIndex ~= nil and buffIndex >= 0 then -- better not to break out of the loop if we get an intermittent negative or nil
+        if buffIndex ~= nil and buffIndex >= 0 then
+            -- better not to break out of the loop if we get an intermittent negative or nil
             currentBuffTexture = GetPlayerBuffTexture(buffIndex)
 
             if currentBuffTexture ~= nil then
@@ -798,7 +849,7 @@ local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopA
                 --@formatter:on
 
                 -- print("** [" .. time() .. "] i=" .. _tostring(i) .. ", currentBuffIsMatching=" .. _tostring(currentBuffIsMatching) .. ", buffIndex=" .. _tostring(buffIndex) .. ", currentBuffTexture=" .. _tostring(currentBuffTexture))
-                
+
                 if currentBuffIsMatching then
                     -- print("** [" .. time() .. "] Matching buff found: currentBuffTexture=" .. _tostring(currentBuffTexture) .. " at buffIndex=" .. _tostring(buffIndex))
 
@@ -811,7 +862,7 @@ local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopA
                     matchedBuffsCount = matchedBuffsCount + 1;
 
                     if stopAtFirstMatch then
-                        break;
+                        break ;
                     end
                 end
             end
@@ -1011,7 +1062,8 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
     matchedBuffs,
     matchedBuffsCount,
     currentBuffIsMatching = cernieUsefulFunctionsTooltip:GetName() .. "TextLeft1", nil, nil, nil, 0, false;
-    for i = 32, 0, -1 do --00 exhaustive search from 32 (most recent buff) down to 0 (oldest buff)
+    for i = 32, 0, -1 do
+        --00 exhaustive search from 32 (most recent buff) down to 0 (oldest buff)
 
         cernieUsefulFunctionsTooltip:SetOwner(WorldFrame, "ANCHOR_NONE"); --   order
         cernieUsefulFunctionsTooltip:ClearLines();  --                         order
@@ -1061,7 +1113,7 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
                         or ( buff12 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff12) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff12))) )
                         or ( buff13 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff13) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff13))) )
                         or ( buff14 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff14) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff14))) )
-                        or ( buff15 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff15) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff15))) ); --@formatter:on
+                        or (buff15 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff15) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff15)))); --@formatter:on
 
                 if currentBuffIsMatching then
                     -- print("** [" .. time() .. "] Matching buff found: currentBuffName=" .. _tostring(currentBuffName) .. " at index i=" .. _tostring(i))
@@ -1075,7 +1127,7 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
                     matchedBuffsCount = matchedBuffsCount + 1;
 
                     if stopAtFirstMatch then
-                        break;
+                        break ;
                     end
                 end
             end
@@ -1242,17 +1294,17 @@ function findMostRecentRegexedActiveBuff(unit, buffRegex1, buffRegex2, buffRegex
             buffRegex14,
             buffRegex15
     );
-    
+
     if matchedBuffsCount == 0 then
         return nil, nil;
     end
-    
+
     return matchesArray[1].Index, matchesArray[1].BuffName;
 end
 
 function CastSpellIfSpecifiedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
     buff1 = buff1 or spell; -- if buff1 is not specified, assume the buff to check for is the same as the spell to cast
-    
+
     local mostRecentBuffIndex = findMostRecentActiveBuff(scanUnit, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15);
     if mostRecentBuffIndex ~= nil then
         return false; -- at least one buff found, do not cast
@@ -1267,13 +1319,13 @@ function CastSpellIfSpecifiedBuffsAreAllMissing(scanUnit, spell, onSelf, useStop
             or onSelf;
 
     CastSpellByName(spell, onSelf)
-    
+
     return true
 end
 
 function CastSpellIfSpecifiedRegexedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
     buffRegex1 = buffRegex1 or spell; -- if buff1 is not specified, assume the buff to check for is the same as the spell to cast
-    
+
     local mostRecentBuffIndex = findMostRecentRegexedActiveBuff(scanUnit, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15);
     if mostRecentBuffIndex ~= nil then
         return false; -- at least one buff found, do not cast
@@ -1288,7 +1340,7 @@ function CastSpellIfSpecifiedRegexedBuffsAreAllMissing(scanUnit, spell, onSelf, 
             or onSelf;
 
     CastSpellByName(spell, onSelf);
-    
+
     return true;
 end
 
@@ -1340,7 +1392,7 @@ local function cancelPlayerBuffByNamesOrTexturesImpl(useNamesNotTextures, useExa
     useNamesNotTextures = useNamesNotTextures == nil
             and true
             or useNamesNotTextures;
-    
+
     throttlingTimeInSeconds = (throttlingTimeInSeconds == nil or throttlingTimeInSeconds < 0)
             and 1 -- default to 1 seconds
             or throttlingTimeInSeconds;
@@ -1352,14 +1404,18 @@ local function cancelPlayerBuffByNamesOrTexturesImpl(useNamesNotTextures, useExa
 
     local matchingBuffIndex
 
-    if useNamesNotTextures then -- buff-name-based filtering
-        if useExactMatchingNotRegexes then -- dont turn this into ternary as it will break if the first find returns nil!
+    if useNamesNotTextures then
+        -- buff-name-based filtering
+        if useExactMatchingNotRegexes then
+            -- dont turn this into ternary as it will break if the first find returns nil!
             matchingBuffIndex = findMostRecentActiveBuff("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
         else
             matchingBuffIndex = findMostRecentRegexedActiveBuff("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
         end
-    else -- buff-texture-based filtering
-        if useExactMatchingNotRegexes then -- dont turn this into ternary as it will break if the first find returns nil!
+    else
+        -- buff-texture-based filtering
+        if useExactMatchingNotRegexes then
+            -- dont turn this into ternary as it will break if the first find returns nil!
             matchingBuffIndex = findMostRecentActiveBuffViaTextures("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
         else
             matchingBuffIndex = findMostRecentActiveBuffViaRegexedTextures("player", buffString1, buffString2, buffString3, buffString4, buffString5, buffString6, buffString7, buffString8, buffString9, buffString10, buffString11, buffString12, buffString13, buffString14, buffString15)
@@ -1510,10 +1566,10 @@ function EnsurePaladinRighteousFuryIsOn()
     if not localizedSpellName then
         return false; -- cant find the spell   not a paladin or too low level paladin
     end
-    
+
     local isAlreadyOn = findMostRecentActiveBuffViaRegexedTextures("player", PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX) ~= nil;
     if isAlreadyOn then
-        return false;    
+        return false;
     end
 
     CastSpellByName(localizedSpellName, true);
@@ -1535,10 +1591,10 @@ local _havePrintedDeprecationWarningFor_isBuffNameActive = false;
 --[DEPRECATED: Use findRegexedActiveBuffs() instead] Reads unit's buffs and returns isBuffActive, buffIndex, numBuffs
 function isBuffNameActive(buff, unit)
     if not _havePrintedDeprecationWarningFor_isBuffNameActive then
-        _print("[DEPRECATION WARNING] isBuffNameActive() is deprecated, please use findRegexedActiveBuffs() instead!", 1, 0.5, 0);
+        _printDeprecationWarning(TF("Function '%s()' has been deprecated - use '%s()' instead!", "isBuffNameActive", "findRegexedActiveBuffs"));
         _havePrintedDeprecationWarningFor_isBuffNameActive = true;
     end
-    
+
     unit = unit or "player";
 
     createTooltipFrame();
@@ -1563,6 +1619,7 @@ function isBuffNameActive(buff, unit)
         cernieUsefulFunctionsTooltip:Hide();
         i = i + 1;
     end
+
     numBuffs = i - 1;
     return isBuffActive, buffIndex, numBuffs;
 end
@@ -1594,7 +1651,9 @@ function isDebuffNameActive(debuff, unit)
         cernieUsefulFunctionsTooltip:Hide();
         i = i + 1;
     end
+
     numDebuffs = i - 1;
+
     return isDebuffActive, debuffIndex, numDebuffs;
 end
 
@@ -1669,28 +1728,28 @@ end
 
 --Uses your normal mount or AQ40 mount if inside AQ40
 local ZONES_AQ40 = {
-    ["Ahn'Qiraj"] = true,
-    ["Temple of Ahn'Qiraj"] = true,
+    [L "Ahn'Qiraj"] = true,
+    [L "Temple of Ahn'Qiraj"] = true,
 };
 
--- 
 function MountAQ(normal, aq)
-    local zone = GetRealZoneText();    
-    if ZONES_AQ40[zone] then        
+    local localizedZoneName = GetRealZoneText(); -- get the localized zone-name
+    if ZONES_AQ40[localizedZoneName] then
         local aqMountsToTry = {
-            [1] = (aq or ""),
-            [2] = "Black Qiraji Battle Tank",
-            [3] = "Red Qiraji Battle Tank",
-            [4] = "Blue Qiraji Battle Tank",
-            [5] = "Green Qiraji Battle Tank",
-            [6] = "Yellow Qiraji Battle Tank"
+            [1] = L(aq or ""),
+            [2] = L "Black Qiraji Battle Tank",
+            [3] = L "Red Qiraji Battle Tank",
+            [4] = L "Blue Qiraji Battle Tank",
+            [5] = L "Green Qiraji Battle Tank",
+            [6] = L "Yellow Qiraji Battle Tank"
         };
 
         for __, aqMount in _ipairs(aqMountsToTry) do
             if aqMount ~= "" then
-                if haveSpell(aqMount) then -- in twow the mounts are actually stored as spells and not as items like in vwow
+                if haveSpell(aqMount) then
+                    -- in twow the mounts are actually stored as spells and not as items like in vwow
                     CastSpellByName(aqMount, true);
-                    return;
+                    return true;
                 end
             end
         end
@@ -1700,22 +1759,26 @@ function MountAQ(normal, aq)
                 local aqFound, aqBag, aqSlot = isInBag(aqMount);
                 if (aqFound) then
                     UseContainerItem(aqBag, aqSlot, 1);
-                    return;
+                    return true;
                 end
             end
         end
-        return;
+        return true;
     end
 
-    if haveSpell(normal) then -- paladin mounts are spells and not items   moreover in twow all mounts are spells
-        CastSpellByName(normal);
-        return;
+    if haveSpell(normal) then
+        -- paladin mounts are spells and not items   moreover in twow all mounts are spells
+        CastSpellByName(normal, true);
+        return true;
     end
-    
-    local normalFound, normalBag, normalSlot = isInBag(normal);
+
+    local normalFound, normalBag, normalSlot = isInBag(normal); -- vanilla wow mounts are items
     if (normalFound) then
         UseContainerItem(normalBag, normalSlot, 1);
+        return true;
     end
+    
+    return false;
 end
 
 --Uses a container item based on item-name-regex, self ensures the item is used on the player
@@ -1841,9 +1904,11 @@ function printBuffTextures()
     local g = GetPlayerBuff;
     local buffIndex;
 
-    for buffId=0, 32, 1 do -- in twow we need to also scan buffId=0 despite what the docs say about buffId being 1..16
+    for buffId = 0, 32, 1 do
+        -- in twow we need to also scan buffId=0 despite what the docs say about buffId being 1..16
         buffIndex = g(buffId);
-        if buffIndex ~= nil and buffIndex >= 0 then -- prefer exhaustive scanning
+        if buffIndex ~= nil and buffIndex >= 0 then
+            -- prefer exhaustive scanning
             local fullTexturePath = GetPlayerBuffTexture(buffIndex) or "";
             local textureFileName = _strsplit(fullTexturePath, "Icons\\")[2] or "nil";
             _print("buffId=" .. _tostring(buffId) .. " (buffIndex=" .. _tostring(buffIndex) .. "): " .. _tostring(textureFileName) .. ", fullPath=" .. _tostring(fullTexturePath));
