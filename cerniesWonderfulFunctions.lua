@@ -73,8 +73,8 @@ function CerniesWonderfulFunctions_OnEvent(event)
         _druid__bestBearForm__localizedSpellName = nil;
         _paladin__righteousFury__localizedSpellName = nil;
 
-        _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths = nil;
         _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames = nil;
+        _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths = nil;
     end
 end
 
@@ -262,6 +262,16 @@ function printAllSpellsOfCurrentPlayer()
             )
         end
     end
+end
+
+-- returns true if the player has the given spell in their spellbook
+function haveSpell(localizedSpellBaseName, optionalRank)
+    local _, spellsIndexedBy_localizedSpellNames = getAllSpellsOfCurrentPlayerOnce();
+
+    return spellsIndexedBy_localizedSpellNames[localizedSpellBaseName] ~= nil and ( --@formatter:off
+            optionalRank == nil
+        or  spellsIndexedBy_localizedSpellNames[localizedSpellBaseName][optionalRank] ~= nil
+    ) --@formatter:on
 end
 
 -- returns id of a spell from player's spellbook based on the given texture-regex
@@ -1647,15 +1657,49 @@ function ModifyKeyAction(options)
 end
 
 --Uses your normal mount or AQ40 mount if inside AQ40
+local ZONES_AQ40 = {
+    ["Ahn'Qiraj"] = true,
+    ["Temple of Ahn'Qiraj"] = true,
+};
+
 function MountAQ(normal, aq)
-    local zone = GetRealZoneText();
-    if zone == "Temple of Ahn'Qiraj" or zone == "Ahn'Qiraj" then
-        local aqFound, aqBag, aqSlot = isInBag(aq);
-        
-        UseContainerItem(aqBag, aqSlot, 1);
+    local zone = GetRealZoneText();    
+    if ZONES_AQ40[zone] then        
+        local aqMountsToTry = {
+            [1] = (aq or ""),
+            [2] = "Black Qiraji Battle Tank",
+            [3] = "Red Qiraji Battle Tank",
+            [4] = "Blue Qiraji Battle Tank",
+            [5] = "Green Qiraji Battle Tank",
+            [6] = "Yellow Qiraji Battle Tank"
+        };
+
+        for __, aqMount in _ipairs(aqMountsToTry) do
+            if aqMount ~= "" then
+                if haveSpell(aqMount) then -- in twow the mounts are actually stored as spells and not as items like in vwow
+                    CastSpellByName(aqMount, true);
+                    return;
+                end
+            end
+        end
+
+        for __, aqMount in _ipairs(aqMountsToTry) do
+            if aqMount ~= "" then
+                local aqFound, aqBag, aqSlot = isInBag(aqMount);
+                if (aqFound) then
+                    UseContainerItem(aqBag, aqSlot, 1);
+                    return;
+                end
+            end
+        end
         return;
     end
 
+    if haveSpell(normal) then -- paladin mounts are spells and not items   moreover in twow all mounts are spells
+        CastSpellByName(normal);
+        return;
+    end
+    
     local normalFound, normalBag, normalSlot = isInBag(normal);
     if (normalFound) then
         UseContainerItem(normalBag, normalSlot, 1);
