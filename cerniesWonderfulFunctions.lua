@@ -1,5 +1,6 @@
 CerniesWonderfulFunctions = {};
-CWF_isPlayerInCombat = false;
+
+local _isPlayerInCombat = false;
 
 local _tostring = tostring
 
@@ -19,8 +20,8 @@ local _druid__feralCharge__localizedSpellName;
 local _druid__bestBearForm__localizedSpellName;
 local _paladin__righteousFury__localizedSpellName;
 
-local _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames
-local _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths
+local _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames;
+local _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths;
 
 local ROYAL_BLUE = { 0.39, 0.584, 0.929 }; -- Cornflower blue (#6495ED)
 local function _print(msg, r, g, b, id)
@@ -61,10 +62,10 @@ end
 
 function CerniesWonderfulFunctions_OnEvent(event)
     if event == "PLAYER_REGEN_DISABLED" then
-        CWF_isPlayerInCombat = true;
+        _isPlayerInCombat = true;
 
     elseif event == "PLAYER_REGEN_ENABLED" then
-        CWF_isPlayerInCombat = false;
+        _isPlayerInCombat = false;
 
     elseif event == "SPELL_UPDATE" then
         -- reset these so they get looked up again next time they are used
@@ -334,7 +335,7 @@ function Nom(water, food)
     local healthPct = UnitHealth("player") / UnitHealthMax("player");
     local manaPct = UnitMana("player") / UnitManaMax("player");
 
-    if (CWF_isPlayerInCombat == false) then
+    if (_isPlayerInCombat == false) then
         if (isBuffNameActive("Drink") == false and waterFound == true and manaPct ~= 1) then
             UseContainerItem(waterBag, waterSlot, 1);
         elseif (isBuffNameActive("Food") == false and foodFound == true and healthPct ~= 1) then
@@ -348,7 +349,7 @@ function NomFood(food)
     local foodFound, foodBag, foodSlot = isInBag(food);
     local healthPct = UnitHealth("player") / UnitHealthMax("player");
 
-    if (CWF_isPlayerInCombat == false) then
+    if (_isPlayerInCombat == false) then
         if (isBuffNameActive("Food") == false and foodFound == true and healthPct ~= 1) then
             UseContainerItem(foodBag, foodSlot, 1);
         end
@@ -360,7 +361,7 @@ function NomWater(water)
     local waterFound, waterBag, waterSlot = isInBag(water);
     local manaPct = UnitMana("player") / UnitManaMax("player");
 
-    if (CWF_isPlayerInCombat == false) then
+    if (_isPlayerInCombat == false) then
         if (isBuffNameActive("Drink") == false and waterFound == true and manaPct ~= 1) then
             UseContainerItem(waterBag, waterSlot, 1);
         end
@@ -1662,6 +1663,7 @@ local ZONES_AQ40 = {
     ["Temple of Ahn'Qiraj"] = true,
 };
 
+-- 
 function MountAQ(normal, aq)
     local zone = GetRealZoneText();    
     if ZONES_AQ40[zone] then        
