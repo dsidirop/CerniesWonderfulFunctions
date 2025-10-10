@@ -50,23 +50,33 @@ local function _strsplit(self, delimiter)
     return result
 end
 
-function CerniesWonderfulFunctions_OnLoad()
-    this:RegisterEvent("SPELL_UPDATE")
-    this:RegisterEvent("PLAYER_REGEN_ENABLED")
-    this:RegisterEvent("PLAYER_REGEN_DISABLED")
-    
-    _print("Addon loaded. Please see the readme for instructions.");
-end
+local _rootFrame = CreateFrame("Frame", "CerniesWonderfulFunctionsFrame", UIParent)
+_rootFrame:RegisterEvent("ADDON_LOADED") -- :SetScript("OnLoad", ...) would not work because it only works if defined via the xml file!
+_rootFrame:RegisterEvent("SPELL_UPDATE");
+_rootFrame:RegisterEvent("PLAYER_REGEN_ENABLED");
+_rootFrame:RegisterEvent("PLAYER_REGEN_DISABLED");
 
-function CerniesWonderfulFunctions_OnEvent(event)
-    if event == "PLAYER_REGEN_DISABLED" then
+local function CerniesWonderfulFunctions_OnEvent()
+    local eventSnapshot = event;
+    local argument1Snapshot = arg1;
+
+    if eventSnapshot == "ADDON_LOADED" then
+        if argument1Snapshot ~= "CerniesWonderfulFunctions" then
+            return
+        end
+
+        _print("Addon loaded. Please see the readme for instructions.");
+        return
+    end
+
+    if eventSnapshot == "PLAYER_REGEN_DISABLED" then
         _isPlayerInCombat = true;
 
-    elseif event == "PLAYER_REGEN_ENABLED" then
+    elseif eventSnapshot == "PLAYER_REGEN_ENABLED" then
         _isPlayerInCombat = false;
 
-    elseif event == "SPELL_UPDATE" then
-        -- reset these so they get looked up again next time they are used
+    elseif eventSnapshot == "SPELL_UPDATE" then
+        -- reset these so they get looked up afresh next time they are used
         _startFishing_localizedSpellName = nil;
         _druid__feralCharge__localizedSpellName = nil;
         _druid__bestBearForm__localizedSpellName = nil;
@@ -76,6 +86,8 @@ function CerniesWonderfulFunctions_OnEvent(event)
         _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths = nil;
     end
 end
+
+_rootFrame:SetScript("OnEvent", CerniesWonderfulFunctions_OnEvent)
 
 function UseBestBandage()
     UseBGBandage(
