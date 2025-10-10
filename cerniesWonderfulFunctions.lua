@@ -21,7 +21,7 @@ local _paladin__righteousFury__localizedSpellName;
 local _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames;
 local _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths;
 
-local ROYAL_BLUE = { 0.39, 0.584, 0.929 }; -- Cornflower blue (#6495ED)
+local ROYAL_BLUE = { 0.39, 0.584, 0.929 };
 local function _print(msg, r, g, b, id)
     DEFAULT_CHAT_FRAME:AddMessage(
             "[CWF] " .. msg,
