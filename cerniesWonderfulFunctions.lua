@@ -62,12 +62,6 @@ local function _strsplit(self, delimiter)
     return result
 end
 
-local _rootFrame = CreateFrame("Frame", "CerniesWonderfulFunctionsFrame", UIParent);
-_rootFrame:RegisterEvent("ADDON_LOADED") -- :SetScript("OnLoad", ...) would not work because it only works if defined via the xml file!
-_rootFrame:RegisterEvent("SPELL_UPDATE");
-_rootFrame:RegisterEvent("PLAYER_REGEN_ENABLED");
-_rootFrame:RegisterEvent("PLAYER_REGEN_DISABLED");
-
 local function CerniesWonderfulFunctions_OnEvent()
     local eventSnapshot = event;
     local argument1Snapshot = arg1;
@@ -85,7 +79,7 @@ local function CerniesWonderfulFunctions_OnEvent()
         _isPlayerInCombat = true;
         return
     end
-    
+
     if eventSnapshot == "PLAYER_REGEN_ENABLED" then
         _isPlayerInCombat = false;
         return
@@ -104,6 +98,11 @@ local function CerniesWonderfulFunctions_OnEvent()
     end
 end
 
+local _rootFrame = CreateFrame("Frame", "CerniesWonderfulFunctionsFrame", UIParent);
+_rootFrame:RegisterEvent("ADDON_LOADED") -- :SetScript("OnLoad", ...) would not work because it only works if defined via the xml file!
+_rootFrame:RegisterEvent("SPELL_UPDATE");
+_rootFrame:RegisterEvent("PLAYER_REGEN_ENABLED");
+_rootFrame:RegisterEvent("PLAYER_REGEN_DISABLED");
 _rootFrame:SetScript("OnEvent", CerniesWonderfulFunctions_OnEvent)
 
 function UseBestBandage()
