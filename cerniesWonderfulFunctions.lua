@@ -574,17 +574,21 @@ function UseHealthstone()
     _print(T "** No healthstones found to use!")
 end
 
---Decide which spell to cast based on Clearcast proc
-function MageDPM(spell1, spell2)
-    local clearcast = isBuffNameActive("Clearcasting"); -- todo convert this over to use texture-based-buff detection so that it will work on non-english clients!
+local SPELL__CLEARCAST__TEXTURE_FILEPATH_REGEX = "[Ss][Pp][Ee][Ll][Ll].*[Ss][Hh][Aa][Dd][Oo][Ww].*[Mm][Aa][Nn][Aa][Bb][Uu][Rr][Nn]$"; -- spell_shadow_manaburn
 
-    if (clearcast) then
+function hasClearcastProc()
+    return findMostRecentActiveBuffViaTextures(SPELL__CLEARCAST__TEXTURE_FILEPATH_REGEX) ~= nil;
+end
+
+-- decide which spell to cast based on clearcast proc
+function MageDPM(spell1, spell2)
+    if hasClearcastProc() then
         SpellStopCasting();
         CastSpellByName(spell1);
-    else
-        CastSpellByName(spell2);
+        return;
     end
 
+    CastSpellByName(spell2);
 end
 
 local SPELL__START_FISHING__TEXTURE_FILEPATH_REGEX = "[Tt][Rr][Aa][Dd][Ee].*[Ff][Ii][Ss][Hh][Ii][Nn][Gg]$"; -- trade_fishing

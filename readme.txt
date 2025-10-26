@@ -101,6 +101,13 @@ The water only version of the above Nom function.
 For example, the following macro command:
 /script NomFood('Conjured Sparkling Water')
 
+- hasClearcastProc()
+Function to determine if the player currently has a clearcasting proc active. Returns true or false.
+
+Useful for Mage, Shaman or Druid with a clearcasting talent.
+
+/script if hasClearcastProc() then CastSpellByName("Arcane Missiles") else CastSpellByName("Arcane Missiles(Rank 1)") end;
+
 - MageDPM(spell1, spell2)
 Useful for Mage, Shaman or Druid with a clearcasting talent. Casts spell2 until a clearcast proc occurs then stops casting and
 casts spell1. A mage for instance, could switch between rank 1 and max rank Arcane Missiles for getting the most damage once OOM.
