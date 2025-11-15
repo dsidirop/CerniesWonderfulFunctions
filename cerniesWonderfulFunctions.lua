@@ -448,7 +448,7 @@ local EXOTIC_MANA_BOOSTERS = { L "Nordanaar Herbal Tea", L "Dark Rune", L "Demon
 --One action to use an exotic Mana booster based on item availability
 function UseExoticManaBooster()
     local potFound, potBag, potSlot, duration
-    for i = 1, _getn(potion) do
+    for i = 1, _getn(EXOTIC_MANA_BOOSTERS) do
         potFound, potBag, potSlot = isInBag(EXOTIC_MANA_BOOSTERS[i])
         if (potFound) then
             _, duration, _ = GetContainerItemCooldown(potBag, potSlot)
