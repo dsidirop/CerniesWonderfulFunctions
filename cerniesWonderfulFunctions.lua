@@ -1317,13 +1317,18 @@ function CastSpellIfSpecifiedBuffsAreAllMissing(scanUnit, spell, onSelf, useStop
         SpellStopCasting();
     end
 
-    onSelf = onSelf == nil
-            and true
-            or onSelf;
+    if type(spell) == "function" then
+        spell(onSelf);
 
-    CastSpellByName(spell, onSelf)
+    else
+        onSelf = onSelf == nil
+                and true
+                or onSelf;
 
-    return true
+        CastSpellByName(spell, onSelf);
+    end
+
+    return true;
 end
 
 function CastSpellIfSpecifiedRegexedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, buffRegex1, buffRegex2, buffRegex3, buffRegex4, buffRegex5, buffRegex6, buffRegex7, buffRegex8, buffRegex9, buffRegex10, buffRegex11, buffRegex12, buffRegex13, buffRegex14, buffRegex15)
@@ -1338,11 +1343,16 @@ function CastSpellIfSpecifiedRegexedBuffsAreAllMissing(scanUnit, spell, onSelf, 
         SpellStopCasting();
     end
 
-    onSelf = onSelf == nil
-            and true
-            or onSelf;
+    if type(spell) == "function" then
+        spell(onSelf);
 
-    CastSpellByName(spell, onSelf);
+    else
+        onSelf = onSelf == nil
+                and true
+                or onSelf;
+
+        CastSpellByName(spell, onSelf);
+    end
 
     return true;
 end
@@ -1359,11 +1369,16 @@ function CastSpellIfAnySpecifiedBuffIsPresent(scanUnit, spell, onSelf, useStopCa
         SpellStopCasting();
     end
 
-    onSelf = onSelf == nil
-            and true
-            or onSelf;
+    if type(spell) == "function" then
+        spell(onSelf);
 
-    CastSpellByName(spell, onSelf);
+    else
+        onSelf = onSelf == nil
+                and true
+                or onSelf;
+
+        CastSpellByName(spell, onSelf);
+    end
 
     return true;
 end
@@ -1380,11 +1395,16 @@ function CastSpellIfAnySpecifiedRegexedBuffIsPresent(scanUnit, spell, onSelf, us
         SpellStopCasting();
     end
 
-    onSelf = onSelf == nil
-            and true
-            or onSelf;
+    if type(spell) == "function" then
+        spell(onSelf);
 
-    CastSpellByName(spell, onSelf);
+    else
+        onSelf = onSelf == nil
+                and true
+                or onSelf;
+
+        CastSpellByName(spell, onSelf);
+    end
 
     return true;
 end
