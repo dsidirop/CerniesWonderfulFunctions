@@ -397,6 +397,7 @@ end
 local STANDARD_MANA_POTIONS = {
     L 'Major Mana Draught', -- best ones
     L 'Major Mana Potion',
+    L 'Diet McWeaksauce', -- twow shimmering flats racing reward    same as major mana potion and major mana draught
     L 'Combat Mana Potion',
     L 'Wildvine Potion',
     L 'Superior Mana Potion',
@@ -443,7 +444,7 @@ function UseManaPotion()
     _print(T "** No standard mana-potions found to use!")
 end
 
-local EXOTIC_MANA_BOOSTERS = { L "Nordanaar Herbal Tea", L "Dark Rune", L "Demonic Rune" }
+local EXOTIC_MANA_BOOSTERS = { L "Nordanaar Herbal Tea", L "Tea With Sugar", L "Whipper Root Tuber", L "Night Dragon's Breath", L "Dark Rune", L "Demonic Rune" }
 
 --One action to use an exotic Mana booster based on item availability
 function UseExoticManaBooster()
@@ -462,7 +463,7 @@ function UseExoticManaBooster()
         end
     end
 
-    _print(T "** No exotic mana-potions found to use!")
+    _print(T "** No exotic mana-potions off-cd available to use!")
 end
 
 local ARMOR_POTIONS = { L "Greater Stoneshield Potion", L "Lesser Stoneshield Potion" }
@@ -490,6 +491,7 @@ end
 local STANDARD_HEALTH_POTIONS = {
     L "Major Healing Draught", -- best ones
     L "Major Healing Potion",
+    L "The McWeaksauce Classic", -- twow shimmering flats racing reward   same as major healing potion and major healing draught
     L "Combat Healing Potion",
     L "Superior Healing Potion",
     L "Greater Healing Potion",
