@@ -397,7 +397,7 @@ end
 local STANDARD_MANA_POTIONS = {
     L 'Major Mana Draught', -- best ones
     L 'Major Mana Potion',
-    L 'Diet McWeaksauce', -- twow shimmering flats racing reward    same as major mana potion and major mana draught
+    L 'Diet McWeaksauce', -- twow shimmering flats racing reward    same as major mana potion and major mana draught    doesnt have translations really
     L 'Combat Mana Potion',
     L 'Wildvine Potion',
     L 'Superior Mana Potion',
@@ -491,7 +491,7 @@ end
 local STANDARD_HEALTH_POTIONS = {
     L "Major Healing Draught", -- best ones
     L "Major Healing Potion",
-    L "The McWeaksauce Classic", -- twow shimmering flats racing reward   same as major healing potion and major healing draught
+    L "The McWeaksauce Classic", -- twow shimmering flats racing reward   same as major healing potion and major healing draught   doesnt have translations really
     L "Combat Healing Potion",
     L "Superior Healing Potion",
     L "Greater Healing Potion",
