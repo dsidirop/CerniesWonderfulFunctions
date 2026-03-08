@@ -1560,6 +1560,9 @@ end
 local PALADIN__RIGHTEOUS_FURY__TEXTURE_FILEPATH = "interface\\icons\\spell_holy_sealoffury";
 local PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX = "[Ss][Pp][Ee][Ll][Ll].*[Hh][Oo][Ll][Yy].*[Ss][Ee][Aa][Ll].*[Oo][Ff].*[Ff][Uu][Rr][Yy]$"; -- spell_holy_sealoffury
 
+-- local PRIEST__SHADOWFORM__TEXTURE_FILEPATH = "interface\\icons\\spell_shadow_shadowform";
+local PRIEST__SHADOWFORM__TEXTURE_FILENAME_REGEX = "[Ss][Pp][Ee][Ll][Ll].*[Ss][Hh][Aa][Dd][Oo][Ww].*[Ff][Oo][Rr][Mm]$"; -- spell_shadow_shadowform
+
 -- Cancels paladin righteous fury buff
 local _preferredMethodForCancellingRighteousFury; -- nil = still undecided, true = prefer exact texture-path matching, false = prefer regexed texture-path matching
 function CancelPaladinRighteousFury(throttlingTimeInSeconds) --@formatter:off
@@ -1585,7 +1588,7 @@ local function tryGetLocalizedSpellNameFor_paladinRighteousFury()
             or nil;
 end
 
--- Ensures paladin righteous fury buff is active, returns true if it was off and got cast, false if it was already on
+-- ensures paladin righteous fury buff is active
 function EnsurePaladinRighteousFuryIsOn()
     local localizedSpellName = tryGetLocalizedSpellNameFor_paladinRighteousFury();
     if not localizedSpellName then
@@ -1594,7 +1597,35 @@ function EnsurePaladinRighteousFuryIsOn()
 
     local isAlreadyOn = findMostRecentActiveBuffViaRegexedTextures("player", PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX) ~= nil;
     if isAlreadyOn then
-        return false;
+        return true;
+    end
+
+    CastSpellByName(localizedSpellName, true);
+    return true;
+end
+
+----------------------------------------------------------------
+
+local function tryGetLocalizedSpellNameFor_priestShadowform()
+    _priest__shadowform__localizedSpellName = _priest__shadowform__localizedSpellName
+            or tryGetLocalizedSpellNameByRegexedTextureFilePath(PRIEST__SHADOWFORM__TEXTURE_FILENAME_REGEX)
+            or ""; -- priest too low level or not a priest at all
+
+    return _priest__shadowform__localizedSpellName ~= ""
+            and _priest__shadowform__localizedSpellName
+            or nil;
+end
+
+-- ensures priest is in shadowform
+function EnsurePriestShadowformIsOn()
+    local localizedSpellName = tryGetLocalizedSpellNameFor_priestShadowform();
+    if not localizedSpellName then
+        return false; -- cant find the spell   not a priest or too low level priest
+    end
+
+    local isAlreadyOn = findMostRecentActiveBuffViaRegexedTextures("player", PRIEST__SHADOWFORM__TEXTURE_FILENAME_REGEX) ~= nil;
+    if isAlreadyOn then
+        return true;
     end
 
     CastSpellByName(localizedSpellName, true);
