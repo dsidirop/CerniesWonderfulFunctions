@@ -133,6 +133,15 @@ For example, the following macro command:
 
 <code>/script MageDPM("Arcane Missiles", "Arcane Missiles(Rank 1)");</code>
 
+- hasClearcastProc()
+Helper used by `MageDPM()` to detect whether a Clearcasting-style proc is currently active. Returns boolean (`true`/`false`).
+
+```lua
+if hasClearcastProc() then
+    CastSpellByName("Arcane Missiles")
+end
+```
+
 - ToggleEquipItemSlot(slot, item1, item2)
 Switches between two pieces of gear for a specified item slot. The slot parameter requires the name of the Inventory slot constant.
 For example, the following macro command:
@@ -240,6 +249,37 @@ if matchingBuffIndex ~= nil then
 end
 ```
 
+- findActiveBuffsViaTextures(unit, exactBuffTexture1, exactBuffTexture2, exactBuffTexture3, ...)
+Scans buff **texture paths** (not localized names) and returns `(matchesArray, matchedBuffsCount)`. Matching is exact and case-insensitive.
+
+```lua
+local matches = findActiveBuffsViaTextures("player", "interface\\icons\\spell_holy_devotionaura")
+if matches ~= nil then
+    print("Found matching texture buffs")
+end
+```
+
+- findActiveBuffsViaRegexedTextures(unit, buffTextureRegex1, buffTextureRegex2, buffTextureRegex3, ...)
+Like `findActiveBuffsViaTextures()` but texture matching is regex-based and case-sensitive.
+
+```lua
+local matches = findActiveBuffsViaRegexedTextures("player", ".*Spell_Holy_SealOfWisdom$")
+```
+
+- findMostRecentActiveBuffViaTextures(unit, exactBuff1, exactBuff2, exactBuff3, ...)
+Returns `(matchingBuffIndex, matchingBuffTexture)` for the most recently applied matching buff texture, or `nil` if none matched.
+
+```lua
+local idx, texture = findMostRecentActiveBuffViaTextures("player", "interface\\icons\\spell_holy_devotionaura")
+```
+
+- findMostRecentActiveBuffViaRegexedTextures(unit, buffRegex1, buffRegex2, buffRegex3, ...)
+Like `findMostRecentActiveBuffViaTextures()` but uses case-sensitive regex matching against texture paths.
+
+```lua
+local idx, texture = findMostRecentActiveBuffViaRegexedTextures("player", ".*Spell_Holy_SealOf.*$")
+```
+
 - CancelPlayerBuffByName(throttlingTimeInSeconds, exactBuff1, exactBuff2, exactBuff3, ...)
 
 Note: You're probably better off using CancelPlayerBuffViaTextures() considering that it has proven more reliable in practice.
@@ -324,6 +364,20 @@ if turnedOnNow then
 end
 ```
 
+- CancelPriestShadowform()
+Cancels priest Shadowform if active. Returns `true` if Shadowform was found and canceled, otherwise `false`.
+
+```lua
+local cancelled = CancelPriestShadowform()
+```
+
+- EnsurePriestShadowformIsOn()
+Ensures priest Shadowform is active; if not active, casts it. Returns `true` when the spell exists and is (or becomes) active, `false` when unavailable.
+
+```lua
+local ok = EnsurePriestShadowformIsOn()
+```
+
 - isEdwardTheOddBuffProcced()
 
 Function to determine if the buff from 'Hand of Edward the Odd' (world BoE weapon) is currently active. Returns boolean (true or false).
@@ -335,13 +389,10 @@ if isActive then
 end
 ```
 
-- **[<u>DEPRECATED: Use the findRegexedActiveBuffs() instead</u>]** isBuffNameActive(buff, unit)
-Function to query a buff name on the specified unit. Returns true/false based on if buff name is found, the index of the buff found, and the total 
-number of buffs the unit has. Unit parameter is based on API unit (ie "player" or "target"). Useful in saving space in custom macros for 
-decision based logic. Note this does not work with enemy targets.
-For example, the following macro command:
+- isBuffNameActive(buff, unit)
+Deprecated helper (prefer `findRegexedActiveBuffs()`). Checks whether the named buff is active and returns `isBuffActive`, `buffIndex`, `numBuffs`.
 
-<code>/script local isActive, index, numBuffs = isBuffNameActive("Arcane Intellect", "player") if(isActive == false) then CastSpellByName("Arcane Intellect"); end;</code>
+<code>/script local isActive, index, numBuffs = isBuffNameActive("Arcane Intellect", "player")</code>
 
 - isDebuffNameActive(debuff, unit)
 Function similar to isBuffNameActive(buff, unit) but for debuffs. However, this DOES apply to enemy targets.
@@ -434,6 +485,34 @@ about a spell from the player's spell book.
 For example, the following macro command:
 
 <code>/script local _, duration, _ = GetSpellCooldown(getSpellId("Swiftmend"), BOOKTYPE_SPELL) if(duration == 0) then CastSpellByName("Swiftmend") else DEFAULT_CHAT_FRAME:AddMessage("Swiftmend on cooldown.") end;</code>
+
+- printAllSpellsOfCurrentPlayer()
+Debug helper that prints all current spellbook entries grouped by localized spell name and rank/texture info.
+
+```lua
+printAllSpellsOfCurrentPlayer()
+```
+
+- haveSpell(localizedSpellBaseName, optionalRank)
+Returns `true` if the player has the specified localized spell name in the spellbook. If `optionalRank` is provided, checks that rank specifically.
+
+```lua
+local hasRank1 = haveSpell("Frostbolt", 1)
+```
+
+- tryGetLocalizedSpellNameByExactTextureFilePath(fullTextureFilePath)
+Finds a localized spell name by exact (case-insensitive) texture path match in the player spellbook. Returns localized spell name or `nil`.
+
+```lua
+local name = tryGetLocalizedSpellNameByExactTextureFilePath("Interface\\Icons\\Spell_Shadow_Shadowform")
+```
+
+- tryGetLocalizedSpellNameByRegexedTextureFilePath(regexedFullTextureFilePath)
+Like `tryGetLocalizedSpellNameByExactTextureFilePath()` but uses regex matching against spell texture paths.
+
+```lua
+local name = tryGetLocalizedSpellNameByRegexedTextureFilePath("[Ss]pell_[Ss]hadow_[Ss]hadowform$")
+```
 
 - isSpellOnCd(spell)
 Function to find out if a spell is on Cooldown based on the spell name. Returns true or false.
@@ -528,13 +607,13 @@ Function to take an item link and extract the item name. Helper to isInBag(itemN
 - isBuffTextureActive(texture)
 Function similar to isBuffNameActive(buff) but for texture names but more limited in that it only returns true/false based on if the texture name is active on the player.
 
-- getBuffTextures()
-Helper function for a user to determine buff texture names for use with function Nom(drinkTexture, eatTexture, water, food). 
-This function returns a list of each buff texture the player currently has active. To use, eat or drink the consumable 
-for the texture needed for Nom(drinkTexture, eatTexture, water, food) and run the command below.
+- printBuffTextures()
+Helper function to print active buff texture names/paths to chat for debugging and macro authoring.
 For example:
 
-<code>/script getBuffTextures()</code>
+<code>/script printBuffTextures()</code>
+
+(Older docs or macros may refer to this helper as `getBuffTextures()`. The exported function name is `printBuffTextures()`.)
 
 - Fish(pole)
 One button to equip a fishing pole or begin fishing if a pole is equipped. Hold a modifier key (ctrl, alt, shift) + button to attach the best available lure in inventory.
