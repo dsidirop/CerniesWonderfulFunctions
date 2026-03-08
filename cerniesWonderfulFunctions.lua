@@ -771,7 +771,7 @@ function getShapeshiftForm()
 end
 
 --Create Frame to read tooltip
-function createTooltipFrame()
+local function createTooltipFrame()
     if cernieUsefulFunctions == nil then
         cernieUsefulFunctions = CreateFrame("GameTooltip", "cernieUsefulFunctionsTooltip", nil, "GameTooltipTemplate");
         cernieUsefulFunctionsTooltip:Hide(); -- order
@@ -1605,6 +1605,13 @@ function EnsurePaladinRighteousFuryIsOn()
 end
 
 ----------------------------------------------------------------
+
+function CancelPriestShadowform()
+    return CancelPlayerBuffViaRegexedTextures(
+            nil, -- throttlingTimeInSeconds
+            PRIEST__SHADOWFORM__TEXTURE_FILENAME_REGEX
+    ) ~= nil;
+end
 
 local function tryGetLocalizedSpellNameFor_priestShadowform()
     _priest__shadowform__localizedSpellName = _priest__shadowform__localizedSpellName
