@@ -2,6 +2,6 @@
 ## Title: CerniesWonderfulFunctions
 ## Notes: Script methods for using specific items and helping players create simple(er) macros. Partially supports Turtle WoW (wip).
 ## Author: Cernie (original), DSidirop (enhancements)
-## Version: 1.8.0
+## Version: 1.9.0
 
 cerniesWonderfulFunctions.xml
