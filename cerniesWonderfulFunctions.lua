@@ -20,6 +20,7 @@ local _tblinsert = table.insert
 local _startFishing_localizedSpellName; -- cached localized spell names
 local _druid__feralCharge__localizedSpellName;
 local _druid__bestBearForm__localizedSpellName;
+local _priest__shadowform__localizedSpellName;
 local _paladin__righteousFury__localizedSpellName;
 
 local _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames;
@@ -89,8 +90,10 @@ local function CerniesWonderfulFunctions_OnEvent()
         -- reset these so they get looked up afresh next time they are used
         _startFishing_localizedSpellName = nil;
         _druid__feralCharge__localizedSpellName = nil;
+        _priest__shadowform__localizedSpellName = nil;
         _druid__bestBearForm__localizedSpellName = nil;
         _paladin__righteousFury__localizedSpellName = nil;
+        
 
         _allSpellbookSpellsOfCharacterIndexedBy_localizedSpellNames = nil;
         _allSpellbookSpellsOfCharacterIndexedBy_lowercasedTextureFilepaths = nil;
