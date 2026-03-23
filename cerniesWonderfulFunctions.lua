@@ -586,19 +586,26 @@ function hasClearcastProc()
 end
 
 -- decide which spell to cast based on clearcast proc
-local _lastProcTimestamp = -1;
+local _lastProcTimestamp = -1
+local _hasCancelledCastOnce = false
 function MageDPM(spell1, spell2, castImmediatelyIfClearcastIsUp)
     castImmediatelyIfClearcastIsUp = castImmediatelyIfClearcastIsUp == nil or castImmediatelyIfClearcastIsUp
 
-    if castImmediatelyIfClearcastIsUp and hasClearcastProc() then
-        local now = GetTime()
-        if now - _lastProcTimestamp < 1 then
-            return
+    if hasClearcastProc() then
+        if castImmediatelyIfClearcastIsUp and not _hasCancelledCastOnce then
+            local now = GetTime()
+            if now - _lastProcTimestamp < 6 then
+                return
+            end
+
+            if not _hasCancelledCastOnce then
+                _lastProcTimestamp = now
+                _hasCancelledCastOnce = true
+
+                SpellStopCasting()
+            end
         end
 
-        _lastProcTimestamp = now
-        SpellStopCasting()
-        
         if type(spell1) == "function" then
             spell1()
             return
@@ -607,6 +614,8 @@ function MageDPM(spell1, spell2, castImmediatelyIfClearcastIsUp)
         CastSpellByName(spell1)
         return
     end
+
+    _hasCancelledCastOnce = false
 
     if type(spell2) == "function" then
         spell2()
