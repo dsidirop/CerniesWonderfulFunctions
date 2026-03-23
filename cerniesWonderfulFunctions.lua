@@ -589,10 +589,21 @@ end
 function MageDPM(spell1, spell2)
     if hasClearcastProc() then
         SpellStopCasting();
+        
+        if type(spell1) == "function" then
+            spell1();
+            return;
+        end
+        
         CastSpellByName(spell1);
         return;
     end
 
+    if type(spell2) == "function" then
+        spell2();
+        return;
+    end
+    
     CastSpellByName(spell2);
 end
 
