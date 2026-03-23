@@ -582,29 +582,38 @@ end
 local SPELL__CLEARCAST__TEXTURE_FILEPATH_REGEX = "[Ss][Pp][Ee][Ll][Ll].*[Ss][Hh][Aa][Dd][Oo][Ww].*[Mm][Aa][Nn][Aa][Bb][Uu][Rr][Nn]$"; -- spell_shadow_manaburn
 
 function hasClearcastProc()
-    return findMostRecentActiveBuffViaTextures(SPELL__CLEARCAST__TEXTURE_FILEPATH_REGEX) ~= nil;
+    return findMostRecentActiveBuffViaRegexedTextures("player", SPELL__CLEARCAST__TEXTURE_FILEPATH_REGEX) ~= nil;
 end
 
 -- decide which spell to cast based on clearcast proc
-function MageDPM(spell1, spell2)
-    if hasClearcastProc() then
-        SpellStopCasting();
+local _lastProcTimestamp = -1;
+function MageDPM(spell1, spell2, castImmediatelyIfClearcastIsUp)
+    castImmediatelyIfClearcastIsUp = castImmediatelyIfClearcastIsUp == nil or castImmediatelyIfClearcastIsUp
+
+    if castImmediatelyIfClearcastIsUp and hasClearcastProc() then
+        local now = GetTime()
+        if now - _lastProcTimestamp < 1 then
+            return
+        end
+
+        _lastProcTimestamp = now
+        SpellStopCasting()
         
         if type(spell1) == "function" then
-            spell1();
-            return;
+            spell1()
+            return
         end
         
-        CastSpellByName(spell1);
-        return;
+        CastSpellByName(spell1)
+        return
     end
 
     if type(spell2) == "function" then
-        spell2();
-        return;
+        spell2()
+        return
     end
     
-    CastSpellByName(spell2);
+    CastSpellByName(spell2)
 end
 
 local SPELL__START_FISHING__TEXTURE_FILEPATH_REGEX = "[Tt][Rr][Aa][Dd][Ee].*[Ff][Ii][Ss][Hh][Ii][Nn][Gg]$"; -- trade_fishing
@@ -867,7 +876,7 @@ local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopA
                         or ( buff15 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff15) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff15))));
                 --@formatter:on
 
-                -- print("** [" .. time() .. "] i=" .. _tostring(i) .. ", currentBuffIsMatching=" .. _tostring(currentBuffIsMatching) .. ", buffIndex=" .. _tostring(buffIndex) .. ", currentBuffTexture=" .. _tostring(currentBuffTexture))
+                -- print("** [" .. time() .. "] i=" .. _tostring(i) .. ", exactMatchingNotRegex=".._tostring(exactMatchingNotRegex)..", currentBuffIsMatching=" .. _tostring(currentBuffIsMatching) .. ", buffIndex=" .. _tostring(buffIndex) .. ", currentBuffTexture=" .. _tostring(currentBuffTexture))
 
                 if currentBuffIsMatching then
                     -- print("** [" .. time() .. "] Matching buff found: currentBuffTexture=" .. _tostring(currentBuffTexture) .. " at buffIndex=" .. _tostring(buffIndex))
