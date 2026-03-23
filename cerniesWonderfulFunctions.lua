@@ -901,7 +901,7 @@ local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopA
         return nil, 0;
     end
 
-    return matchedBuffs;
+    return matchedBuffs, matchedBuffsCount;
 
     --00  in twow this method sometimes returns nil even if a buff does in fact exist at the given index
     --    we should not get tricked and break out of the loop early in that case
@@ -1143,6 +1143,8 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
                         or ( buff14 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff14) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff14))) )
                         or (buff15 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff15) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff15)))); --@formatter:on
 
+                -- print("** i=" .. _tostring(i) .. ", exactMatchingNotRegex=".._tostring(exactMatchingNotRegex)..", buff1=".._tostring(buff1)..", currentBuffName=" .. _tostring(currentBuffName))
+                
                 if currentBuffIsMatching then
                     -- print("** [" .. time() .. "] Matching buff found: currentBuffName=" .. _tostring(currentBuffName) .. " at index i=" .. _tostring(i))
 
@@ -1166,7 +1168,7 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
         return nil, 0;
     end
 
-    return matchedBuffs;
+    return matchedBuffs, matchedBuffsCount;
 
     --00  in twow this method sometimes returns nil even if a buff does in fact exist at the given index
     --    we should not get tricked and break out of the loop early in that case
@@ -1282,6 +1284,8 @@ function findMostRecentActiveBuff(unit, exactBuff1, exactBuff2, exactBuff3, exac
             exactBuff14,
             exactBuff15
     );
+    
+    -- print("** [findMostRecentActiveBuff] matchedBuffsCount=" .. _tostring(matchedBuffsCount))
 
     if matchedBuffsCount == 0 then
         return nil, nil;
