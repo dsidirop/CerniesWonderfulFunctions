@@ -69,4 +69,21 @@ CerniesWonderfulFunctions.Localizations[_thisLocale] = {
     ["Mana Jade"] = "Нефрит маны",
     ["Mana Agate"] = "Агат маны",
     ["Mana Citrine"] = "Цитрин маны",
+
+    ["Find Herbs"]    = "Поиск трав",
+    ["Find Trees"]    = "Поиск деревьев",
+    ["Find Treasure"] = "Поиск сокровищ",
+    ["Find Minerals"] = "Поиск руды",
+
+    ["Track Beasts"]    = "Выслеживать зверей",
+    ["Track Hidden"]    = "Выслеживать скрытых",
+    ["Track Giants"]    = "Выслеживать великанов",
+    ["Track Demons"]    = "Выслеживать демонов",
+    ["Track Undeads"]   = "Выслеживать нежить",
+    ["Track Humanoids"] = "Выслеживать гуманоидов",
+    ["Track Dragonkin"] = "Выслеживать драконидов",
+    ["Track Elementals"] = "Выслеживать элементалей",
+
+    ["Sense Undead"] = "Чуять нежить",
+    ["Sense Demons"] = "Чуять демонов",
 };

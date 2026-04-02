@@ -69,4 +69,21 @@ CerniesWonderfulFunctions.Localizations[_thisLocale] = {
     ["Mana Jade"] = "Giada di Mana",
     ["Mana Agate"] = "Agata di Mana",
     ["Mana Citrine"] = "Citrino di Mana",
+
+    ["Find Herbs"]    = "Trova erbe",
+    ["Find Trees"]    = "Trova alberi",
+    ["Find Treasure"] = "Trova tesori",
+    ["Find Minerals"] = "Trova minerali",
+
+    ["Track Beasts"]    = "Traccia belve",
+    ["Track Hidden"]    = "Traccia nascosti",
+    ["Track Giants"]    = "Traccia giganti",
+    ["Track Demons"]    = "Traccia demoni",
+    ["Track Undeads"]   = "Traccia non-morti",
+    ["Track Humanoids"] = "Traccia umanoidi",
+    ["Track Dragonkin"] = "Traccia dracoidi",
+    ["Track Elementals"] = "Traccia elementali",
+
+    ["Sense Undead"] = "Percepire non-morti",
+    ["Sense Demons"] = "Percepire demoni",
 };

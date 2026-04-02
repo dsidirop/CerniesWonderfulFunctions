@@ -69,4 +69,21 @@ CerniesWonderfulFunctions.Localizations[_thisLocale] = {
     ["Mana Jade"] = "法力翡翠",
     ["Mana Agate"] = "法力瑪瑙",
     ["Mana Citrine"] = "法力黃水晶",
+
+    ["Find Herbs"]    = "尋找草藥",
+    ["Find Trees"]    = "尋找樹木",
+    ["Find Treasure"] = "尋找寶藏",
+    ["Find Minerals"] = "尋找礦物",
+
+    ["Track Beasts"]    = "追蹤野獸",
+    ["Track Hidden"]    = "追蹤隱匿目標",
+    ["Track Giants"]    = "追蹤巨人",
+    ["Track Demons"]    = "追蹤惡魔",
+    ["Track Undeads"]   = "追蹤不死族",
+    ["Track Humanoids"] = "追蹤類人生物",
+    ["Track Dragonkin"] = "追蹤龍族",
+    ["Track Elementals"] = "追蹤元素生物",
+
+    ["Sense Undead"] = "感知亡靈",
+    ["Sense Demons"] = "感知惡魔",
 };

@@ -68,4 +68,21 @@ CerniesWonderfulFunctions.Localizations[_enUSLocale] = {
     ["Mana Jade"] = nil,
     ["Mana Agate"] = nil,
     ["Mana Citrine"] = nil,
+
+    ["Find Herbs"] = nil, -- tracking spells
+    ["Find Trees"] = nil,
+    ["Find Treasure"] = nil,
+    ["Find Minerals"] = nil,
+
+    ["Track Beasts"] = nil,
+    ["Track Hidden"] = nil,
+    ["Track Giants"] = nil,
+    ["Track Demons"] = nil,
+    ["Track Undeads"] = nil,
+    ["Track Humanoids"] = nil,
+    ["Track Dragonkin"] = nil,
+    ["Track Elementals"] = nil,
+
+    ["Sense Undead"] = nil,
+    ["Sense Demons"] = nil,
 };
