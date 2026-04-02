@@ -352,6 +352,17 @@ if foundAndCancelled then
 end
 ```
 
+- IsPaladinRighteousFuryActive()
+Returns `true` if the paladin has righteous fury buff active, otherwise returns `false`.
+
+```lua
+if IsPaladinRighteousFuryActive() then
+    -- do something if righteous fury is on
+else
+    -- do something else if righteous fury is off
+end
+```
+
 - EnsurePaladinRighteousFuryIsOn()
 
 Ensures that the paladin has righteous fury buff active. If not, it will cast righteous fury. Returns true if Righteous Fury got turned on just now,

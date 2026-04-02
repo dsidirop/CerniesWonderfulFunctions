@@ -1624,6 +1624,10 @@ local function tryGetLocalizedSpellNameFor_paladinRighteousFury()
             or nil;
 end
 
+function IsPaladinRighteousFuryActive()
+    return findMostRecentActiveBuffViaRegexedTextures("player", PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX) ~= nil;
+end
+
 -- ensures paladin righteous fury buff is active
 function EnsurePaladinRighteousFuryIsOn()
     local localizedSpellName = tryGetLocalizedSpellNameFor_paladinRighteousFury();
@@ -1631,7 +1635,7 @@ function EnsurePaladinRighteousFuryIsOn()
         return false; -- cant find the spell   not a paladin or too low level paladin
     end
 
-    local isAlreadyOn = findMostRecentActiveBuffViaRegexedTextures("player", PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX) ~= nil;
+    local isAlreadyOn = IsPaladinRighteousFuryActive();
     if isAlreadyOn then
         return true;
     end
