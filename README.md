@@ -460,6 +460,14 @@ Notes:
 * If one of the listed tracking spells is not learned, it is silently skipped.
 * Returns `true` if a listed tracking spell was cast, otherwise `false`.
 
+- IsAnyTrackingEnabled()
+  Returns `true` if any tracking mode is currently active, otherwise `false`. Useful for macros that want to toggle tracking modes on/off.
+
+- IsSpecificTrackingEnabled(mode1, mode2, mode3, mode4, mode5, mode6, mode7, mode8, mode9, mode10, mode11, mode12, mode13, mode14, mode15)
+  Returns `true` if any of the specified tracking modes are currently active, otherwise `false`. Useful for macros that want to toggle specific tracking modes on/off.
+
+<code>/script if(IsSpecificTrackingEnabled("Find Herbs", "Find Minerals")) then CastSpellByName("Find Herbs") else CastSpellByName("Find Minerals") end;</code>
+
 - MountAQ(normal, aq)
 Function to use a mount based on location. If the player is in AQ40 the function will use the specified AQ40 mount, otherwise the function will use the 
 player's normal mount.

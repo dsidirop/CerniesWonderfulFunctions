@@ -1824,7 +1824,7 @@ function ModifyKeyAction(options)
     end
 end
 
-local TRACKING_TEXTURES_REGEXES = {
+local ALL_TRACKING_TEXTURES_REGEXES = {
     [L "Find Herbs"]    = "[Ii][Nn][Vv][_-]*[Mm][Ii][Ss][Cc][_-]*[Ff][Ll][Oo][Ww][Ee][Rr][_-]*02$", --                                         inv_misc_flower_02
     [L "Find Trees"]    = "[Ii][Nn][Vv][_-]*[Tt][Rr][Aa][Dd][Ee][Ss][_-]*[Ss][Kk][Ii][Ll][Ll][_-]*[Ii][Tt][Ee][Mm].*03$", -- [twow 1.18.1+]    inv_trades_skill_item_03
     [L "Find Treasure"] = "[Rr][Aa][Cc][Ii][Aa][Ll].*[Dd][Ww][Aa][Rr][Ff].*[Ff][Ii][Nn][Dd][_-]*[Tt][Rr][Ee][Aa][Ss][Uu][Rr][Ee]$", --         racial_dwarf_find_treasure
@@ -1839,9 +1839,39 @@ local TRACKING_TEXTURES_REGEXES = {
     [L "Track Dragonkin"]  = "[Ii][Nn][Vv][_-]*[Mm][Ii][Ss][Cc][_-]*[Hh][Ee][Aa][Dd][_-]*[Dd][Rr][Aa][Gg][Oo][Nn][_-]*01$", --                                                   inv_misc_head_dragon_01
     [L "Track Elementals"] = "[Ss][Pp][Ee][Ll][Ll][_-]*[Ff][Rr][Oo][Ss][Tt][_-]*[Ss][Uu][Mm][Mm][Oo][Nn][_-]*[Ww][Aa][Tt][Ee][Rr][_-]*[Ee][Ll][Ee][Mm][Ee][Nn][Tt][Aa][Ll]$", -- spell_frost_summon_water_elemental
 
-    [L "Sense Undead"] = "[Ss][Pp][Ee][Ll][Ll][_-]*[Hh][Oo][Ll][Yy][_-]*[Ss][Ee][Nn][Ss][Ee][_-]*[Uu][Nn][Dd][Ee][Aa][Dd]$", --                 spell_holy_sense_undead     (paladin)
+    [L "Sense Undead"] = "[Ss][Pp][Ee][Ll][Ll][_-]*[Hh][Oo][Ll][Yy][_-]*[Ss][Ee][Nn][Ss][Ee][_-]*[Uu][Nn][Dd][Ee][Aa][Dd]$", --                 spell_holy_sense_undead    (paladin)
     [L "Sense Demons"] = "[Ss][Pp][Ee][Ll][Ll][_-]*[Ss][Hh][Aa][Dd][Oo][Ww][_-]*[Mm][Ee][Tt][Aa][Mm][Oo][Rr][Pp][Hh][Oo][Ss][Ii][Ss]$", --      spell_shadow_metamorphosis (warlock)
 };
+
+local ALL_RAW_TRACKING_TEXTURES_REGEXES = (function() -- keep this after ALL_TRACKING_TEXTURES_REGEXES since it depends on it
+    local modes = {}
+    for _, textureRegex in pairs(ALL_TRACKING_TEXTURES_REGEXES) do
+        _tblinsert(modes, textureRegex)
+    end
+    return modes
+end)()
+
+function IsAnyTrackingEnabled()
+    return findMostRecentActiveBuffViaRegexedTextures(
+            "player",
+            ALL_RAW_TRACKING_TEXTURES_REGEXES[1], ALL_RAW_TRACKING_TEXTURES_REGEXES[2], ALL_RAW_TRACKING_TEXTURES_REGEXES[3],
+            ALL_RAW_TRACKING_TEXTURES_REGEXES[4], ALL_RAW_TRACKING_TEXTURES_REGEXES[5], ALL_RAW_TRACKING_TEXTURES_REGEXES[6],
+            ALL_RAW_TRACKING_TEXTURES_REGEXES[7], ALL_RAW_TRACKING_TEXTURES_REGEXES[8], ALL_RAW_TRACKING_TEXTURES_REGEXES[9],
+            ALL_RAW_TRACKING_TEXTURES_REGEXES[10], ALL_RAW_TRACKING_TEXTURES_REGEXES[11], ALL_RAW_TRACKING_TEXTURES_REGEXES[12],
+            ALL_RAW_TRACKING_TEXTURES_REGEXES[13], ALL_RAW_TRACKING_TEXTURES_REGEXES[14], ALL_RAW_TRACKING_TEXTURES_REGEXES[15]
+    ) ~= nil
+end
+
+function IsSpecificTrackingEnabled(mode1, mode2, mode3, mode4, mode5, mode6, mode7, mode8, mode9, mode10, mode11, mode12, mode13, mode14, mode15)
+    return findMostRecentActiveBuffViaRegexedTextures(
+            "player",
+            ALL_TRACKING_TEXTURES_REGEXES[L[mode1]], ALL_TRACKING_TEXTURES_REGEXES[L[mode2]], ALL_TRACKING_TEXTURES_REGEXES[L[mode3]],
+            ALL_TRACKING_TEXTURES_REGEXES[L[mode4]], ALL_TRACKING_TEXTURES_REGEXES[L[mode5]], ALL_TRACKING_TEXTURES_REGEXES[L[mode6]],
+            ALL_TRACKING_TEXTURES_REGEXES[L[mode7]], ALL_TRACKING_TEXTURES_REGEXES[L[mode8]], ALL_TRACKING_TEXTURES_REGEXES[L[mode9]],
+            ALL_TRACKING_TEXTURES_REGEXES[L[mode10]], ALL_TRACKING_TEXTURES_REGEXES[L[mode11]], ALL_TRACKING_TEXTURES_REGEXES[L[mode12]],
+            ALL_TRACKING_TEXTURES_REGEXES[L[mode13]], ALL_TRACKING_TEXTURES_REGEXES[L[mode14]], ALL_TRACKING_TEXTURES_REGEXES[L[mode15]]
+    ) ~= nil
+end
 
 -- Rotates through up to 15 tracking spell names and casts the next available one every call.
 function RoundRobinTrackingModes(mode1, mode2, mode3, mode4, mode5, mode6, mode7, mode8, mode9, mode10, mode11, mode12, mode13, mode14, mode15)
@@ -1868,11 +1898,11 @@ function RoundRobinTrackingModes(mode1, mode2, mode3, mode4, mode5, mode6, mode7
     
     local _, currentTrackingModeName, matchingParameterIndex = findMostRecentActiveBuffViaRegexedTextures(
             "player",
-            TRACKING_TEXTURES_REGEXES[normalizedModes[1]], TRACKING_TEXTURES_REGEXES[normalizedModes[2]], TRACKING_TEXTURES_REGEXES[normalizedModes[3]],
-            TRACKING_TEXTURES_REGEXES[normalizedModes[4]], TRACKING_TEXTURES_REGEXES[normalizedModes[5]], TRACKING_TEXTURES_REGEXES[normalizedModes[6]],
-            TRACKING_TEXTURES_REGEXES[normalizedModes[7]], TRACKING_TEXTURES_REGEXES[normalizedModes[8]], TRACKING_TEXTURES_REGEXES[normalizedModes[9]],
-            TRACKING_TEXTURES_REGEXES[normalizedModes[10]], TRACKING_TEXTURES_REGEXES[normalizedModes[11]], TRACKING_TEXTURES_REGEXES[normalizedModes[12]],
-            TRACKING_TEXTURES_REGEXES[normalizedModes[13]], TRACKING_TEXTURES_REGEXES[normalizedModes[14]], TRACKING_TEXTURES_REGEXES[normalizedModes[15]]
+            ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[1]], ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[2]], ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[3]],
+            ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[4]], ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[5]], ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[6]],
+            ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[7]], ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[8]], ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[9]],
+            ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[10]], ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[11]], ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[12]],
+            ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[13]], ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[14]], ALL_TRACKING_TEXTURES_REGEXES[normalizedModes[15]]
     );
 
     local nextIndex = 1
