@@ -446,6 +446,20 @@ For example, the following macro command (requires SuperMacro addon):
 
 <code>/script ModifyKeyAction{unmod = 'CastSpellByName("Fire Blast")', shift = 'CastSpellByName("Fire Blast(Rank 1)")', alt = 'use("Iron Grenade")', ctrl = 'Macro("MountBoots")'};</code>
 
+- RoundRobinTrackingModes(mode1, mode2, mode3, ...)
+Rotates through up to 15 tracking spell names and casts the next one each time the macro is pressed.
+
+Useful for cycling tracking modes like "Find Herbs", "Find Minerals", "Find Treasure" and "Find Trees" with one button.
+
+<code>/script RoundRobinTrackingModes("Find Herbs", "Find Minerals", "Find Treasure", "Find Trees")</code>
+
+Notes:
+
+* Empty/nil entries are ignored.
+* Stateless behavior: determines the currently active tracking mode from your active buffs, then advances to the next mode in your provided order.
+* If one of the listed tracking spells is not learned, it is silently skipped.
+* Returns `true` if a listed tracking spell was cast, otherwise `false`.
+
 - MountAQ(normal, aq)
 Function to use a mount based on location. If the player is in AQ40 the function will use the specified AQ40 mount, otherwise the function will use the 
 player's normal mount.

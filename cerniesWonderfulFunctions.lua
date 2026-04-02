@@ -4,6 +4,7 @@ local TF = CerniesWonderfulFunctions.TranslateFormatted;
 
 local _isPlayerInCombat = false;
 
+local _modulo = math.fmod
 local _tostring = tostring
 
 local _strsub = string.sub
@@ -813,7 +814,14 @@ end
 
 -----------------------------------------------
 
+local FIND_ACTIVE_BUFFS_VIA_TEXTURES_PARAMETERS_COUNT = 15
 local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopAtFirstMatch, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
+    local targetedBuffs = {
+        buff1,  buff2,  buff3,  buff4,  buff5,
+        buff6,  buff7,  buff8,  buff9,  buff10,
+        buff11, buff12, buff13, buff14, buff15
+    };
+    
     unit = unit or "player";
 
     stopAtFirstMatch = stopAtFirstMatch == nil
@@ -824,18 +832,21 @@ local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopA
             and true
             or exactMatchingNotRegex;
 
-    -- print("*********")
-    -- print("** [" .. time() .. "] findActiveBuffsViaTexturesImpl: unit=" .. _tostring(unit) .. ", exactMatchingNotRegex=" .. _tostring(exactMatchingNotRegex) .. ", stopAtFirstMatch=" .. _tostring(stopAtFirstMatch))
-    -- print("** [" .. time() .. "] buff1='" .. _tostring(buff1) .. "'")
-    -- print("** [" .. time() .. "] buff2='" .. _tostring(buff2) .. "'")
-    -- print("** [" .. time() .. "] buff3='" .. _tostring(buff3) .. "'")
+    if exactMatchingNotRegex then
+        local b
+        for idx = 1, FIND_ACTIVE_BUFFS_VIA_TEXTURES_PARAMETERS_COUNT do
+            b = targetedBuffs[idx]
+            targetedBuffs[idx] = b ~= nil and _strlower(b) or nil;
+        end
+    end
 
     local
     buffIndex,
     matchedBuffs,
     matchedBuffsCount,
     currentBuffTexture,
-    currentBuffIsMatching = -1, nil, 0, nil, false;
+    currentBuffIsMatching,
+    matchingParameterIndex = -1, nil, 0, nil, false, -1;
     for i = 32, 0, -1 do
         --00 exhaustive search from 32 (most recent buff) down to 0 (oldest buff)
 
@@ -848,58 +859,42 @@ local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopA
 
             if currentBuffTexture ~= nil then
                 if exactMatchingNotRegex then
-                    currentBuffTexture = _strlower(currentBuffTexture);
-                    buff1 = buff1 ~= nil and _strlower(buff1) or nil; -- prepare for case-insensitive comparison
-                    buff2 = buff2 ~= nil and _strlower(buff2) or nil;
-                    buff3 = buff3 ~= nil and _strlower(buff3) or nil;
-                    buff4 = buff4 ~= nil and _strlower(buff4) or nil;
-                    buff5 = buff5 ~= nil and _strlower(buff5) or nil;
-                    buff6 = buff6 ~= nil and _strlower(buff6) or nil;
-                    buff7 = buff7 ~= nil and _strlower(buff7) or nil;
-                    buff8 = buff8 ~= nil and _strlower(buff8) or nil;
-                    buff9 = buff9 ~= nil and _strlower(buff9) or nil;
-                    buff10 = buff10 ~= nil and _strlower(buff10) or nil;
-                    buff11 = buff11 ~= nil and _strlower(buff11) or nil;
-                    buff12 = buff12 ~= nil and _strlower(buff12) or nil;
-                    buff13 = buff13 ~= nil and _strlower(buff13) or nil;
-                    buff14 = buff14 ~= nil and _strlower(buff14) or nil;
-                    buff15 = buff15 ~= nil and _strlower(buff15) or nil;
+                    currentBuffTexture = _strlower(currentBuffTexture); -- prepare for case-insensitive comparison
                 end
 
-                --@formatter:off
-                currentBuffIsMatching =
-                           (  buff1 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff1 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff1))) )
-                        or (  buff2 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff2 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff2))) )
-                        or (  buff3 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff3 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff3))) )
-                        or (  buff4 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff4 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff4))) )
-                        or (  buff5 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff5 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff5))) )
-                        or (  buff6 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff6 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff6))) )
-                        or (  buff7 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff7 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff7))) )
-                        or (  buff8 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff8 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff8))) )
-                        or (  buff9 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff9 ) or (not exactMatchingNotRegex and _strfind(currentBuffTexture,  buff9))) )
-                        or ( buff10 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff10) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff10))) )
-                        or ( buff11 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff11) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff11))) )
-                        or ( buff12 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff12) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff12))) )
-                        or ( buff13 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff13) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff13))) )
-                        or ( buff14 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff14) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff14))) )
-                        or ( buff15 ~= nil and ((exactMatchingNotRegex and currentBuffTexture == buff15) or (not exactMatchingNotRegex and _strfind(currentBuffTexture, buff15))));
-                --@formatter:on
+                local tb
+                for paramIdx = 1, FIND_ACTIVE_BUFFS_VIA_TEXTURES_PARAMETERS_COUNT do
+                    tb = targetedBuffs[paramIdx];
+                    if tb ~= nil then
+                        local matches =    (     exactMatchingNotRegex  and  currentBuffTexture == tb         )
+                                        or ( not exactMatchingNotRegex  and  string.find(currentBuffTexture, tb) );
 
-                -- print("** [" .. time() .. "] i=" .. _tostring(i) .. ", exactMatchingNotRegex=".._tostring(exactMatchingNotRegex)..", currentBuffIsMatching=" .. _tostring(currentBuffIsMatching) .. ", buffIndex=" .. _tostring(buffIndex) .. ", currentBuffTexture=" .. _tostring(currentBuffTexture))
+                        -- print("** tb='" .. _tostring(tb) ..
+                        --        "', currentBuffTexture= [" .. _tostring(currentBuffTexture) ..
+                        --        "] , exactMatchingNotRegex='" .. _tostring(exactMatchingNotRegex) ..
+                        --        "', matches='" .. _tostring(string.find(currentBuffTexture, tb)) .. "'")
+                        
+                        if matches then
+                            currentBuffIsMatching = true;
+                            matchingParameterIndex = paramIdx;
+                            break -- stop at first matching parameter
+                        end
+                    end
+                end
 
                 if currentBuffIsMatching then
-                    -- print("** [" .. time() .. "] Matching buff found: currentBuffTexture=" .. _tostring(currentBuffTexture) .. " at buffIndex=" .. _tostring(buffIndex))
-
                     matchedBuffs = matchedBuffs or {}; -- lazy allocation
+
                     _tblinsert(matchedBuffs, {
                         Index = buffIndex, --  todo  in vanilla-wow we should return 'i' (zero-based) but from tbc-wow onwards we MIGHT have to return 'i + 1' if it turns out that the indices are still zero based (doubt it)
                         BuffTexture = currentBuffTexture,
+                        MatchingParameterIndex = matchingParameterIndex,
                     });
 
                     matchedBuffsCount = matchedBuffsCount + 1;
 
                     if stopAtFirstMatch then
-                        break ;
+                        break;
                     end
                 end
             end
@@ -1032,7 +1027,7 @@ function findMostRecentActiveBuffViaTextures(unit, exactBuff1, exactBuff2, exact
         return nil, nil;
     end
 
-    return matchesArray[1].Index, matchesArray[1].BuffTexture;
+    return matchesArray[1].Index, matchesArray[1].BuffTexture, matchesArray[1].MatchingParameterIndex;
 end
 
 -- Reads unit's buffs and returns (matchingBuffIndex, matchingBuffTexture) which is the most recently applied buff (highest index) that matched - or nil if no buffs matched
@@ -1072,7 +1067,7 @@ function findMostRecentActiveBuffViaRegexedTextures(unit, buffRegex1, buffRegex2
         return nil, nil;
     end
 
-    return matchesArray[1].Index, matchesArray[1].BuffTexture;
+    return matchesArray[1].Index, matchesArray[1].BuffTexture, matchesArray[1].MatchingParameterIndex;
 end
 
 -----------------------------------------------
@@ -1300,7 +1295,7 @@ function findMostRecentActiveBuff(unit, exactBuff1, exactBuff2, exactBuff3, exac
         return nil, nil;
     end
 
-    return matchesArray[1].Index, matchesArray[1].BuffName;
+    return matchesArray[1].Index, matchesArray[1].BuffName, matchesArray[1].MatchingParameterIndex;
 end
 
 -- Reads unit's buffs and returns (matchingBuffIndex, matchingBuffName) which is the most recently applied buff (highest index) that matched - or nil if no buffs matched
@@ -1340,7 +1335,7 @@ function findMostRecentRegexedActiveBuff(unit, buffRegex1, buffRegex2, buffRegex
         return nil, nil;
     end
 
-    return matchesArray[1].Index, matchesArray[1].BuffName;
+    return matchesArray[1].Index, matchesArray[1].BuffName, matchesArray[1].MatchingParameterIndex;
 end
 
 function CastSpellIfSpecifiedBuffsAreAllMissing(scanUnit, spell, onSelf, useStopCastingFirst, buff1, buff2, buff3, buff4, buff5, buff6, buff7, buff8, buff9, buff10, buff11, buff12, buff13, buff14, buff15)
@@ -1827,6 +1822,74 @@ function ModifyKeyAction(options)
     elseif (options.unmod ~= nil) then
         RunScript(options.unmod);
     end
+end
+
+local TRACKING_TEXTURES_REGEXES = {
+    [L "Find Herbs"]    = "[Ii][Nn][Vv][_-]*[Mm][Ii][Ss][Cc][_-]*[Ff][Ll][Oo][Ww][Ee][Rr][_-]*02$", --                                         inv_misc_flower_02
+    [L "Find Trees"]    = "[Ii][Nn][Vv][_-]*[Tt][Rr][Aa][Dd][Ee][Ss][_-]*[Ss][Kk][Ii][Ll][Ll][_-]*[Ii][Tt][Ee][Mm].*03$", -- [twow 1.18.1+]    inv_trades_skill_item_03
+    [L "Find Treasure"] = "[Rr][Aa][Cc][Ii][Aa][Ll].*[Dd][Ww][Aa][Rr][Ff].*[Ff][Ii][Nn][Dd][_-]*[Tt][Rr][Ee][Aa][Ss][Uu][Rr][Ee]$", --         racial_dwarf_find_treasure
+    [L "Find Minerals"] = "[Ss][Pp][Ee][Ll][Ll].*[Nn][Aa][Tt][Uu][Rr][Ee].*[Ee][Aa][Rr][Tt][Hh][Qq][Uu][Aa][Kk][Ee]$", --                      spell_nature_earthquake
+
+    [L "Track Beasts"]     = "[Aa][Bb][Ii][Ll][Ii][Tt][Yy][_-]*[Tt][Rr][Aa][Cc][Kk][Ii][Nn][Gg]$", --                                                                            ability_tracking
+    [L "Track Hidden"]     = "[Aa][Bb][Ii][Ll][Ii][Tt][Yy][_-]*[Ss][Tt][Ee][Aa][Ll][Tt][Hh]$", --                                                                                ability_stealth
+    [L "Track Giants"]     = "[Aa][Bb][Ii][Ll][Ii][Tt][Yy][_-]*[Rr][Aa][Cc][Ii][Aa][Ll][_-]*[Aa][Vv][Aa][Tt][Aa][Rr]$", --                                                       ability_racial_avatar
+    [L "Track Demons"]     = "[Ss][Pp][Ee][Ll][Ll][_-]*[Ss][Hh][Aa][Dd][Oo][Ww][_-]*[Ss][Uu][Mm][Mm][Oo][Nn][_-]*[Ff][Ee][Ll][Hh][Uu][Nn][Tt][Ee][Rr]$", --                      spell_shadow_summon_felhunter
+    [L "Track Undeads"]    = "[Ss][Pp][Ee][Ll][Ll][_-]*[Ss][Hh][Aa][Dd][Oo][Ww][_-]*[Dd][Aa][Rr][Kk][_-]*[Ss][Uu][Mm][Mm][Oo][Nn][Ii][Nn][Gg]$", --                              spell_shadow_dark_summoning
+    [L "Track Humanoids"]  = "[Ss][Pp][Ee][Ll][Ll][_-]*[Hh][Oo][Ll][Yy][_-]*[Pp][Rr][Aa][Yy][Ee][Rr][_-]*[Oo][Ff][_-]*[Hh][Ee][Aa][Ll][Ii][Nn][Gg]$", --                         spell_holy_prayer_of_healing
+    [L "Track Dragonkin"]  = "[Ii][Nn][Vv][_-]*[Mm][Ii][Ss][Cc][_-]*[Hh][Ee][Aa][Dd][_-]*[Dd][Rr][Aa][Gg][Oo][Nn][_-]*01$", --                                                   inv_misc_head_dragon_01
+    [L "Track Elementals"] = "[Ss][Pp][Ee][Ll][Ll][_-]*[Ff][Rr][Oo][Ss][Tt][_-]*[Ss][Uu][Mm][Mm][Oo][Nn][_-]*[Ww][Aa][Tt][Ee][Rr][_-]*[Ee][Ll][Ee][Mm][Ee][Nn][Tt][Aa][Ll]$", -- spell_frost_summon_water_elemental
+
+    [L "Sense Undead"] = "[Ss][Pp][Ee][Ll][Ll][_-]*[Hh][Oo][Ll][Yy][_-]*[Ss][Ee][Nn][Ss][Ee][_-]*[Uu][Nn][Dd][Ee][Aa][Dd]$", --                 spell_holy_sense_undead     (paladin)
+    [L "Sense Demons"] = "[Ss][Pp][Ee][Ll][Ll][_-]*[Ss][Hh][Aa][Dd][Oo][Ww][_-]*[Mm][Ee][Tt][Aa][Mm][Oo][Rr][Pp][Hh][Oo][Ss][Ii][Ss]$", --      spell_shadow_metamorphosis (warlock)
+};
+
+-- Rotates through up to 15 tracking spell names and casts the next available one every call.
+function RoundRobinTrackingModes(mode1, mode2, mode3, mode4, mode5, mode6, mode7, mode8, mode9, mode10, mode11, mode12, mode13, mode14, mode15)
+    _modulo = _modulo or math.fmod -- silly workaround
+    
+    local trackingModes = {
+        mode1, mode2, mode3, mode4, mode5,
+        mode6, mode7, mode8, mode9, mode10,
+        mode11, mode12, mode13, mode14, mode15
+    }
+
+    local normalizedModes = {} -- to hold only the non-dud modes after we localize them
+    for i = 1, _getn(trackingModes) do
+        local candidate = _strtrim(trackingModes[i])
+        if candidate ~= "" then
+            _tblinsert(normalizedModes, L(candidate))
+        end
+    end
+
+    local totalModes = _getn(normalizedModes)
+    if totalModes == 0 then
+        return false
+    end
+    
+    local _, currentTrackingModeName, matchingParameterIndex = findMostRecentActiveBuffViaRegexedTextures(
+            "player",
+            TRACKING_TEXTURES_REGEXES[normalizedModes[1]], TRACKING_TEXTURES_REGEXES[normalizedModes[2]], TRACKING_TEXTURES_REGEXES[normalizedModes[3]],
+            TRACKING_TEXTURES_REGEXES[normalizedModes[4]], TRACKING_TEXTURES_REGEXES[normalizedModes[5]], TRACKING_TEXTURES_REGEXES[normalizedModes[6]],
+            TRACKING_TEXTURES_REGEXES[normalizedModes[7]], TRACKING_TEXTURES_REGEXES[normalizedModes[8]], TRACKING_TEXTURES_REGEXES[normalizedModes[9]],
+            TRACKING_TEXTURES_REGEXES[normalizedModes[10]], TRACKING_TEXTURES_REGEXES[normalizedModes[11]], TRACKING_TEXTURES_REGEXES[normalizedModes[12]],
+            TRACKING_TEXTURES_REGEXES[normalizedModes[13]], TRACKING_TEXTURES_REGEXES[normalizedModes[14]], TRACKING_TEXTURES_REGEXES[normalizedModes[15]]
+    );
+
+    local nextIndex = 1
+    if matchingParameterIndex ~= nil then
+        nextIndex = _modulo(matchingParameterIndex, totalModes) + 1
+    end
+
+    for offset = 0, totalModes - 1 do
+        local modeIndex = _modulo((nextIndex - 1 + offset), totalModes) + 1
+        local modeSpellName = normalizedModes[modeIndex]
+        if haveSpell(modeSpellName) then
+            CastSpellByName(modeSpellName, true)
+            return true
+        end
+    end
+
+    return false
 end
 
 --Uses your normal mount or AQ40 mount if inside AQ40
