@@ -4,7 +4,7 @@ if CerniesWonderfulFunctions.ActiveLanguage ~= _thisLocale then  -- only load th
     return
 end
 
-CerniesWonderfulFunctions.Localizations["_thisLocale"] = {
+CerniesWonderfulFunctions.Localizations[_thisLocale] = {
     ["Arathi Basin"] = "아라시 분지",
     ["Warsong Gulch"] = "전쟁노래 협곡",
     ["Alterac Valley"] = "알터랙 계곡",
@@ -68,4 +68,21 @@ CerniesWonderfulFunctions.Localizations["_thisLocale"] = {
     ["Mana Jade"] = "마나 비취",
     ["Mana Agate"] = "마나 마노",
     ["Mana Citrine"] = "마나 황수정",
+
+    ["Find Herbs"]    = "약초 찾기",
+    ["Find Trees"]    = "나무 찾기",
+    ["Find Treasure"] = "보물 찾기",
+    ["Find Minerals"] = "광물 찾기",
+
+    ["Track Beasts"]    = "야수 추적",
+    ["Track Hidden"]    = "은신 추적",
+    ["Track Giants"]    = "거인 추적",
+    ["Track Demons"]    = "악마 추적",
+    ["Track Undeads"]   = "언데드 추적",
+    ["Track Humanoids"] = "인간형 추적",
+    ["Track Dragonkin"] = "용족 추적",
+    ["Track Elementals"] = "정령 추적",
+
+    ["Sense Undead"] = "언데드 감지",
+    ["Sense Demons"] = "악마 감지",
 };

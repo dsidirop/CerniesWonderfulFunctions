@@ -1,4 +1,4 @@
-local _thisLocale = "frFR";
+local _thisLocale = "deDE";
 
 if CerniesWonderfulFunctions.ActiveLanguage ~= _thisLocale then
     -- only load this file if the locale matches
@@ -69,4 +69,21 @@ CerniesWonderfulFunctions.Localizations[_thisLocale] = {
     ["Mana Jade"] = "Manajade",
     ["Mana Agate"] = "Manaachat",
     ["Mana Citrine"] = "Manacitrin",
+
+    ["Find Herbs"]    = "Kräuter finden",
+    ["Find Trees"]    = "Bäume finden",
+    ["Find Treasure"] = "Schätze finden",
+    ["Find Minerals"] = "Mineralien finden",
+
+    ["Track Beasts"]    = "Tiere aufspüren",
+    ["Track Hidden"]    = "Verborgene aufspüren",
+    ["Track Giants"]    = "Riesen aufspüren",
+    ["Track Demons"]    = "Dämonen aufspüren",
+    ["Track Undeads"]   = "Untote aufspüren",
+    ["Track Humanoids"] = "Humanoide aufspüren",
+    ["Track Dragonkin"] = "Drachenverwandte aufspüren",
+    ["Track Elementals"] = "Elementare aufspüren",
+
+    ["Sense Undead"] = "Untote spüren",
+    ["Sense Demons"] = "Dämonen spüren",
 };
