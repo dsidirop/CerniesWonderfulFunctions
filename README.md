@@ -17,6 +17,27 @@ CerniesWonderfulFunctions is a collection of script functions for Vanilla World 
 These functions are flexible in what types of items the player wishes to use, meaning players of all levels can take full advantage of them. Using the methods is as simple as creating a new macro and writing a single line for /script <functionName>(<parameters>). Directions and examples are found below.
 
 # List of Functions
+
+- CancelPaladinImmunities(throttlingTimeInSeconds)
+
+<code>/script CancelPaladinImmunities()</code>
+
+Cancels all paladin immunities such as Divine Shield, Divine Protection, Divine Intervention, Blessing/Hand of Protection.
+This is useful for tanking bosses in raids that require the tank to have no immunities up. Note that this function is throttled
+to only allow one buff cancellation every 'throttlingTimeInSeconds' seconds. This is in order to prevent certain nasty bugs that
+can crop up when mass-cancelling buffs (like losing all buffs). If you pass nil or negative time the default value for throttlingTimeInSeconds will be 1 second.
+
+Returns true if any paladin immunity buff was found and cancelled, false otherwise.
+
+- PurgeDebuffsViaBubbleToggling(retauntToo, useDivineShieldNotDivineProtection, tryBlessingOfProtectionToo)
+
+<code>/script PurgeDebuffsViaBubbleToggling(true)</code>
+
+Purges as many debuffs as possible via rapid bubble-toggling. You have to press this macro twice once to pop the bubble and once
+more to cancel it. This is useful when tanking as a protadin so as to remove annoying debuffs DoTs, stuns and crippling healing debuffs.
+
+By default it will use 'Divine Shield(Rank 1)' to conserve mana and it will try using Blessing of Protection as well if available.
+
 - UseBGBandage(wg, ab, av, normal)
 One action for using Battleground specific bandages, or use normal bandages if not in a Battleground. The parameters
 are based on the item names for each battleground the player wishes to use. If the player is not in a battleground, 

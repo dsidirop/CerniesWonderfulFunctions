@@ -1512,6 +1512,49 @@ function CancelPlayerBuffByRegexedName(throttlingTimeInSeconds, regexedBuff1, re
     );
 end
 
+-- Cancels all kinds of bubbles and paladin hand-of-protection / blessing-of-protection
+-- Returns true if any of the associated buffs was found and cancelled, false otherwise
+function CancelPaladinImmunities(throttlingTimeInSeconds)
+    return CancelPlayerBuffViaRegexedTextures(
+            throttlingTimeInSeconds == nil and -1 or throttlingTimeInSeconds,
+            "[Hh][Oo][Ll][Yy].*[Rr][Ee][Ss][Tt][Oo][Rr][Aa][Tt][Ii][Oo][Nn]$", -- _holy_restoration
+            "[Hh][Oo][Ll][Yy].*[Dd][Ii][Vv][Ii][Nn][Ee].*[Ii][Nn][Tt][Ee][Rr][Vv][Ee][Nn][Tt][Ii][Oo][Nn]$", -- _holy_divine_intervention
+            "[Hh][Oo][Ll][Yy].*[Ss][Ee][Aa][Ll].*[Oo][Ff].*[Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn]$" -- _holy_seal_of_protection
+    )
+end
+
+function PurgeDebuffsViaBubbleToggling(retauntToo, useDivineShieldNotDivineProtection, tryBlessingOfProtectionToo)
+    SpellStopCasting()
+
+    if CancelPaladinImmunities() then
+
+        if retauntToo then
+            local typeOfTauntToo = type(retauntToo)
+            if typeOfTauntToo == "function" then
+                retauntToo()
+                return
+            end
+
+            if typeOfTauntToo == "string" then
+                CastSpellByName(retauntToo)
+                return
+            end
+            
+            CastSpellByName( "Hand of Reckoning" ) -- turtle wow
+        end
+
+        return
+    end
+
+    CastSpellByName(useDivineShieldNotDivineProtection and "Divine Shield(Rank 1)" or "Divine Protection(Rank 1)", true) --order   better not to combine these into one
+
+    if tryBlessingOfProtectionToo == nil or tryBlessingOfProtectionToo then --order
+        CastSpellByName("Hand of Protection(Rank 1)", true) -- better not to combine these into one
+    end
+
+    -- printBuffTextures()
+end
+
 ----------------------------------------------------------------
 
 -- Cancels the most recently applied buff on the player that matches any of the given texture-strings
