@@ -12,6 +12,9 @@ local _strgsub = string.gsub
 local _strfind = string.find
 local _strlower = string.lower
 
+local namPowerGetSpellIdForName_ = GetSpellIdForName
+local nampowerCancelPlayerAuraSpellId_ = CancelPlayerAuraSpellId
+
 local _getn = table.getn
 local _pairs = pairs
 local _ipairs = ipairs
@@ -193,7 +196,7 @@ end
 function getSpellId(targetSpellName)
     local i = 1
     while true do
-        local spellName, _ = GetSpellName(i, BOOKTYPE_SPELL)
+        local spellName, spellId = GetSpellName(i, BOOKTYPE_SPELL)
         if not spellName then
             break
         end
@@ -206,6 +209,37 @@ function getSpellId(targetSpellName)
     end
 
     return nil;
+end
+
+-- requires nampower to work because the original world of warcraft didnt support any API to get the numeric spell-id for a given spell-string
+function getSpellIdByName(desiredSpellName, bookType)
+    namPowerGetSpellIdForName_ = namPowerGetSpellIdForName_ or GetSpellIdForName
+    
+    if not namPowerGetSpellIdForName_ then
+        return nil
+    end
+    
+    if desiredSpellName == nil or desiredSpellName == "" then
+        return nil
+    end
+    
+    if bookType == nil or bookType == "spell" then
+        -- class spells
+        local spellId = namPowerGetSpellIdForName_(desiredSpellName, "spell")
+        if spellId then
+            return spellId, "spell"
+        end
+    end
+
+    if bookType == nil or bookType == "pet" then
+        -- pet spells
+        local spellId = namPowerGetSpellIdForName_(desiredSpellName, "pet")
+        if spellId then
+            return spellId, "pet"
+        end
+    end
+
+    return nil
 end
 
 local function getAllSpellsOfCurrentPlayerOnce()
@@ -850,7 +884,7 @@ local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopA
     for i = 32, 0, -1 do
         --00 exhaustive search from 32 (most recent buff) down to 0 (oldest buff)
 
-        -- print("*****")
+        -- _print("*****")
 
         buffIndex = GetPlayerBuff(i)
         if buffIndex ~= nil and buffIndex >= 0 then
@@ -869,7 +903,7 @@ local function findActiveBuffsViaTexturesImpl(unit, exactMatchingNotRegex, stopA
                         local matches =    (     exactMatchingNotRegex  and  currentBuffTexture == tb         )
                                         or ( not exactMatchingNotRegex  and  string.find(currentBuffTexture, tb) );
 
-                        -- print("** tb='" .. _tostring(tb) ..
+                        -- _print("** tb='" .. _tostring(tb) ..
                         --        "', currentBuffTexture= [" .. _tostring(currentBuffTexture) ..
                         --        "] , exactMatchingNotRegex='" .. _tostring(exactMatchingNotRegex) ..
                         --        "', matches='" .. _tostring(string.find(currentBuffTexture, tb)) .. "'")
@@ -1085,7 +1119,7 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
 
     createTooltipFrame();
 
-    -- print("*********")
+    -- _print("*********")
 
     local
     tooltipTextLeft1Tag,
@@ -1103,13 +1137,13 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
 
         currentBuffTextbox = getglobal(tooltipTextLeft1Tag);
 
-        -- print("*****")
-        -- print("** i=" .. i .. " -> currentBuffTextbox=" .. _tostring(currentBuffTextbox))
+        -- _print("*****")
+        -- _print("** i=" .. i .. " -> currentBuffTextbox=" .. _tostring(currentBuffTextbox))
 
         if currentBuffTextbox ~= nil then
             currentBuffName = currentBuffTextbox:GetText()
             if currentBuffName ~= nil then
-                -- print("** i=" .. i .. " -> currentBuffName=" .. _tostring(currentBuffName))
+                -- _print("** i=" .. i .. " -> currentBuffName=" .. _tostring(currentBuffName))
 
                 if exactMatchingNotRegex then
                     currentBuffName = _strlower(currentBuffName);
@@ -1147,10 +1181,10 @@ local function findActiveBuffsImpl(unit, exactMatchingNotRegex, stopAtFirstMatch
                         or ( buff14 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff14) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff14))) )
                         or (buff15 ~= nil and ((exactMatchingNotRegex and currentBuffName == buff15) or (not exactMatchingNotRegex and _strfind(currentBuffName, buff15)))); --@formatter:on
 
-                -- print("** i=" .. _tostring(i) .. ", exactMatchingNotRegex=".._tostring(exactMatchingNotRegex)..", buff1=".._tostring(buff1)..", currentBuffName=" .. _tostring(currentBuffName))
+                -- _print("** i=" .. _tostring(i) .. ", exactMatchingNotRegex=".._tostring(exactMatchingNotRegex)..", buff1=".._tostring(buff1)..", currentBuffName=" .. _tostring(currentBuffName))
                 
                 if currentBuffIsMatching then
-                    -- print("** [" .. time() .. "] Matching buff found: currentBuffName=" .. _tostring(currentBuffName) .. " at index i=" .. _tostring(i))
+                    -- _print("** [" .. time() .. "] Matching buff found: currentBuffName=" .. _tostring(currentBuffName) .. " at index i=" .. _tostring(i))
 
                     matchedBuffs = matchedBuffs or {}; -- lazy allocation
                     _tblinsert(matchedBuffs, {
@@ -1289,7 +1323,7 @@ function findMostRecentActiveBuff(unit, exactBuff1, exactBuff2, exactBuff3, exac
             exactBuff15
     );
     
-    -- print("** [findMostRecentActiveBuff] matchedBuffsCount=" .. _tostring(matchedBuffsCount))
+    -- _print("** [findMostRecentActiveBuff] matchedBuffsCount=" .. _tostring(matchedBuffsCount))
 
     if matchedBuffsCount == 0 then
         return nil, nil;
@@ -1512,22 +1546,107 @@ function CancelPlayerBuffByRegexedName(throttlingTimeInSeconds, regexedBuff1, re
     );
 end
 
+local PALADIN_IMMUNITIES_SPELL_NAMES = {
+    L "Divine Shield",
+    L "Divine Protection",
+    L "Divine Intervention",
+    L "Hand of Protection",
+    L "Blessing of Protection"
+}
+
+local function NampowerCancelPaladinImmunitiesIfSupported() -- doesnt work 100% of the time for some reason    will be addressed at some point
+
+    nampowerCancelPlayerAuraSpellId_ = nampowerCancelPlayerAuraSpellId_ or CancelPlayerAuraSpellId
+    
+    if not nampowerCancelPlayerAuraSpellId_ then
+        return nil
+    end
+
+    local spellId, verdict, spellNameWithRank
+    for i = 1, 20 do
+        for _, spellBaseName in PALADIN_IMMUNITIES_SPELL_NAMES do
+            spellNameWithRank = spellBaseName .. "(Rank " .. i .. ")"
+            
+            spellId = getSpellIdByName(spellNameWithRank, "spell")
+            if spellId == nil then
+                break
+            end
+
+            verdict = nampowerCancelPlayerAuraSpellId_(spellId, true)
+            if verdict == true or verdict == 1 then
+                return true
+            end
+        end
+    end
+    
+    return false
+end
+
+
+local PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS = {
+    "interface\\icons\\spell_holy_divineintervention", -- Divine Shield
+    "interface\\icons\\spell_holy_restoration", --        Divine Protection
+    "interface\\icons\\spell_holy_sealofprotection", --   Blessing/Hand of Protection
+    "interface\\icons\\spell_nature_timestop" --          Divine Intervention    
+};
+
+local PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES = {
+    "[Ss][Pp][Ee][Ll].*[Hh][Oo][Ll][Yy].*[Rr][Ee][Ss][Tt][Oo][Rr][Aa][Tt][Ii][Oo][Nn]$", --                                 Divine Protection
+    "[Ss][Pp][Ee][Ll].*[Hh][Oo][Ll][Yy].*[Dd][Ii][Vv][Ii][Nn][Ee].*[Ii][Nn][Tt][Ee][Rr][Vv][Ee][Nn][Tt][Ii][Oo][Nn]$", --   Divine Shield
+    "[Ss][Pp][Ee][Ll].*[Hh][Oo][Ll][Yy].*[Ss][Ee][Aa][Ll].*[Oo][Ff].*[Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn]$", --         Blessing/Hand of Protection
+    "[Ss][Pp][Ee][Ll].*[Nn][Aa][Tt][Uu][Rr][Ee].*[Tt][Ii][Mm][Ee][Ss][Tt][Oo][Pp]$" --                                      Divine Intervention
+};
+
+-- Cancels common paladin immunities (Divine Protection, Divine Intervention, Blessing of Protection, etc)
+-- returns true if any of the associated buffs was found, false otherwise
+local function CancelPaladinImmunitiesViaTextureRegexes(throttlingTimeInSeconds)
+    -- @formatter:off
+    return CancelPlayerBuffViaTextures( -- fast path
+            throttlingTimeInSeconds,
+            PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[1],
+            PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[2],
+            PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[3],
+            PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[4],
+            PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[5],
+            PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[6],
+            PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[7],
+            PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[8],
+            PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[9],
+            PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[10]
+    )
+            or
+            CancelPlayerBuffViaRegexedTextures( -- fallback just in case some wowclients have different texture-paths
+                    throttlingTimeInSeconds,
+                    PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[1],
+                    PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[2],
+                    PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[3],
+                    PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[4],
+                    PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[5],
+                    PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[6],
+                    PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[7],
+                    PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[8],
+                    PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[9],
+                    PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[10]
+            )
+    -- @formatter:off
+end
+
 -- Cancels all kinds of bubbles and paladin hand-of-protection / blessing-of-protection
 -- Returns true if any of the associated buffs was found and cancelled, false otherwise
 function CancelPaladinImmunities(throttlingTimeInSeconds)
-    return CancelPlayerBuffViaRegexedTextures(
-            throttlingTimeInSeconds == nil and -1 or throttlingTimeInSeconds,
-            "[Hh][Oo][Ll][Yy].*[Rr][Ee][Ss][Tt][Oo][Rr][Aa][Tt][Ii][Oo][Nn]$", -- _holy_restoration
-            "[Hh][Oo][Ll][Yy].*[Dd][Ii][Vv][Ii][Nn][Ee].*[Ii][Nn][Tt][Ee][Rr][Vv][Ee][Nn][Tt][Ii][Oo][Nn]$", -- _holy_divine_intervention
-            "[Hh][Oo][Ll][Yy].*[Ss][Ee][Aa][Ll].*[Oo][Ff].*[Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn]$" -- _holy_seal_of_protection
-    )
+
+    local verdict = NampowerCancelPaladinImmunitiesIfSupported()
+    if verdict ~= nil then        
+        return verdict
+    end
+    
+    return CancelPaladinImmunitiesViaTextureRegexes() -- if nampower is not installed fallback to the classic way of things    works quirkily in twow though
 end
 
 function PurgeDebuffsViaBubbleToggling(retauntToo, useDivineShieldNotDivineProtection, tryBlessingOfProtectionToo)
     SpellStopCasting()
 
     if CancelPaladinImmunities() then
-
         if retauntToo then
             local typeOfTauntToo = type(retauntToo)
             if typeOfTauntToo == "function" then
@@ -1546,13 +1665,19 @@ function PurgeDebuffsViaBubbleToggling(retauntToo, useDivineShieldNotDivineProte
         return
     end
 
-    CastSpellByName(useDivineShieldNotDivineProtection and "Divine Shield(Rank 1)" or "Divine Protection(Rank 1)", true) --order   better not to combine these into one
+    if useDivineShieldNotDivineProtection then
+        CastSpellByName("Divine Shield(Rank 1)", true) --      order
+        CastSpellByName("Divine Protection(Rank 1)", true) --  order
+    else
+        CastSpellByName("Divine Protection", true) --  order
+        CastSpellByName("Divine Shield", true) --      order
+    end
 
     if tryBlessingOfProtectionToo == nil or tryBlessingOfProtectionToo then --order
         CastSpellByName("Hand of Protection(Rank 1)", true) -- better not to combine these into one
     end
 
-    -- printBuffTextures()
+    -- _printBuffTextures()
 end
 
 ----------------------------------------------------------------
@@ -1582,54 +1707,6 @@ function CancelPlayerBuffViaRegexedTextures(throttlingTimeInSeconds, regexedText
 end
 
 ----------------------------------------------------------------
-
-local PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS = {
-    "interface\\icons\\spell_holy_divineintervention", -- Divine Shield
-    "interface\\icons\\spell_holy_restoration", --        Divine Protection
-    "interface\\icons\\spell_holy_sealofprotection", --   Blessing/Hand of Protection
-    "interface\\icons\\spell_nature_timestop" --          Divine Intervention    
-};
-
-local PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES = {
-    "[Ss][Pp][Ee][Ll].*[Hh][Oo][Ll][Yy].*[Rr][Ee][Ss][Tt][Oo][Rr][Aa][Tt][Ii][Oo][Nn]$", --                                 Divine Protection
-    "[Ss][Pp][Ee][Ll].*[Hh][Oo][Ll][Yy].*[Dd][Ii][Vv][Ii][Nn][Ee].*[Ii][Nn][Tt][Ee][Rr][Vv][Ee][Nn][Tt][Ii][Oo][Nn]$", --   Divine Shield
-    "[Ss][Pp][Ee][Ll].*[Hh][Oo][Ll][Yy].*[Ss][Ee][Aa][Ll].*[Oo][Ff].*[Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn]$", --         Blessing/Hand of Protection
-    "[Ss][Pp][Ee][Ll].*[Nn][Aa][Tt][Uu][Rr][Ee].*[Tt][Ii][Mm][Ee][Ss][Tt][Oo][Pp]$" --                                      Divine Intervention
-};
-
--- Cancels common paladin immunities (Divine Protection, Divine Intervention, Blessing of Protection, etc)
--- returns true if any of the associated buffs was found, false otherwise
-function CancelPaladinImmunities(throttlingTimeInSeconds)
-    -- @formatter:off
-    return CancelPlayerBuffViaTextures( -- fast path
-                  throttlingTimeInSeconds,
-                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[1],
-                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[2],
-                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[3],
-                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[4],
-                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[5],
-                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[6],
-                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[7],
-                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[8],
-                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[9],
-                  PALADIN__IMMUNITIES__TEXTURES_EXACT_FILEPATHS[10]
-           )
-           or
-           CancelPlayerBuffViaRegexedTextures( -- fallback just in case some wowclients have different texture-paths
-                  throttlingTimeInSeconds,
-                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[1],
-                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[2],
-                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[3],
-                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[4],
-                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[5],
-                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[6],
-                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[7],
-                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[8],
-                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[9],
-                  PALADIN__IMMUNITIES__TEXTURES_FILENAMES_REGEXES[10]
-           )
-    -- @formatter:off
-end
 
 local PALADIN__RIGHTEOUS_FURY__TEXTURE_FILEPATH = "interface\\icons\\spell_holy_sealoffury";
 local PALADIN__RIGHTEOUS_FURY__TEXTURE_FILENAME_REGEX = "[Ss][Pp][Ee][Ll][Ll].*[Hh][Oo][Ll][Yy].*[Ss][Ee][Aa][Ll].*[Oo][Ff].*[Ff][Uu][Rr][Yy]$"; -- spell_holy_sealoffury
