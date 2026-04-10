@@ -85,4 +85,11 @@ CerniesWonderfulFunctions.Localizations[_thisLocale] = {
 
     ["Sense Undead"] = "언데드 감지",
     ["Sense Demons"] = "악마 감지",
+
+    ["Divine Shield"]       = "성스러운 방패",
+    ["Divine Protection"]   = "성스러운 보호",
+    ["Divine Intervention"] = "성스러운 중재",
+
+    ["Hand of Protection"]     = "보호의 손길",
+    ["Blessing of Protection"] = "보호의 축복",
 };

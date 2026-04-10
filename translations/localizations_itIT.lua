@@ -86,4 +86,11 @@ CerniesWonderfulFunctions.Localizations[_thisLocale] = {
 
     ["Sense Undead"] = "Percepire non-morti",
     ["Sense Demons"] = "Percepire demoni",
+
+    ["Divine Shield"]       = "Scudo Divino",
+    ["Divine Protection"]   = "Protezione Divina",
+    ["Divine Intervention"] = "Intervento Divino",
+
+    ["Hand of Protection"]     = "Mano della Protezione",
+    ["Blessing of Protection"] = "Benedizione della Protezione",
 };

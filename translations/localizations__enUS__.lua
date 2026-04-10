@@ -85,4 +85,11 @@ CerniesWonderfulFunctions.Localizations[_enUSLocale] = {
 
     ["Sense Undead"] = nil,
     ["Sense Demons"] = nil,
+
+    ["Divine Shield"] = nil,
+    ["Divine Protection"] = nil,
+    ["Divine Intervention"] = nil,
+
+    ["Hand of Protection"] = nil,
+    ["Blessing of Protection"] = nil,
 };
